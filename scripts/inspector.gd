@@ -2,7 +2,7 @@
 # See `LICENSE.md` included in the source distribution for details.
 
 tool
-class_name Inspector
+class_name Inspector, "res://addons/object-inspector/icons/inspector_container.svg"
 extends VBoxContainer
 
 
