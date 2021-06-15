@@ -16,6 +16,7 @@ const PropertyInt = preload("inspector_property_int.gd")
 const PropertyMultiline = preload("inspector_property_multiline.gd")
 const PropertyRect2 = preload("inspector_property_rect2.gd")
 const PropertyString = preload("inspector_property_string.gd")
+const PropertyStringEnum = preload("inspector_property_string_enum.gd")
 const PropertyVector2 = preload("inspector_property_vector2.gd")
 const PropertyVector3 = preload("inspector_property_vector3.gd")
 
@@ -190,8 +191,11 @@ func get_property_edit(object: Object, property: Dictionary) -> PropertyEdit:
 		TYPE_REAL:
 			return PropertyFloat.new(object, name, hint_string, editable)
 		TYPE_STRING:
-			if hint == PROPERTY_HINT_MULTILINE_TEXT:
-				return PropertyMultiline.new(object, name, editable)
+			match hint:
+				PROPERTY_HINT_ENUM:
+					return PropertyStringEnum.new(object, name, hint_string, editable)
+				PROPERTY_HINT_MULTILINE_TEXT:
+					return PropertyMultiline.new(object, name, editable)
 			
 			return PropertyString.new(object, name, editable)
 		TYPE_VECTOR2:
