@@ -61,12 +61,13 @@ func is_readonly() -> bool:
 
 
 func set_search_enabled(value: bool) -> void:
+	_search_enabled = value
 	_search.visible = value
 	return
 
 
 func is_search_enabled() -> bool:
-	return _search.visible
+	return _search_enabled
 
 
 func is_object_null(object: Object) -> bool:
@@ -211,7 +212,8 @@ func update_inspector(filter: String = _search.text) -> void:
 	
 	var container = get_container()
 	if object:
-		_search.visible = true
+		if is_search_enabled():
+			_search.visible = true
 		
 		for property in object.get_property_list():
 			if is_valid_property(property) and filter.is_subsequence_of(property.name):
