@@ -27,7 +27,7 @@ func _init(object: Object, property: String, editable: bool) -> void:
 	self.add_child(container)
 	
 	_label = Label.new()
-	_label.text = property.capitalize()
+	_label.text = tr(property).capitalize()
 	_label.size_flags_vertical = SIZE_EXPAND_FILL
 	_label.size_flags_horizontal = SIZE_EXPAND
 	_label.size_flags_stretch_ratio = 0.5
