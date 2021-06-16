@@ -6,7 +6,7 @@ class_name Inspector, "res://addons/object-inspector/icons/inspector_container.s
 extends VBoxContainer
 
 
-const PropertyEdit = preload("inspector_property.gd")
+const PropertyControl = preload("inspector_property.gd")
 const PropertyBool = preload("inspector_property_bool.gd")
 const PropertyColor = preload("inspector_property_color.gd")
 const PropertyEnum = preload("inspector_property_enum.gd")
@@ -170,7 +170,7 @@ func is_editable_property(property: Dictionary) -> bool:
 	return true
 
 
-func get_property_edit(object: Object, property: Dictionary) -> PropertyEdit:
+func get_property_control(object: Object, property: Dictionary) -> PropertyControl:
 	var name : String = property.name
 	var hint : int = property.hint
 	var hint_string : String = property.hint_string
@@ -196,8 +196,8 @@ func get_property_edit(object: Object, property: Dictionary) -> PropertyEdit:
 					return PropertyStringEnum.new(object, name, hint_string, editable)
 				PROPERTY_HINT_MULTILINE_TEXT:
 					return PropertyMultiline.new(object, name, editable)
-			
-			return PropertyString.new(object, name, editable)
+				_:
+					return PropertyString.new(object, name, editable)
 		TYPE_VECTOR2:
 			return PropertyVector2.new(object, name, editable)
 		TYPE_RECT2:
@@ -221,11 +221,11 @@ func update_inspector(filter: String = _search.text) -> void:
 		
 		for property in object.get_property_list():
 			if is_valid_property(property) and filter.is_subsequence_of(property.name):
-				var property_edit = get_property_edit(object, property)
-				if property_edit:
-					container.add_child(property_edit)
+				var property_control = get_property_control(object, property)
+				if property_control:
+					container.add_child(property_control)
 				else:
-					assert(false, "Invalid property editor.")
+					assert(false, "Invalid property control.")
 	else: # If object is null add placeholder.
 		_search.visible = false
 		
