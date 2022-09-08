@@ -3,7 +3,7 @@
 
 @tool
 ## A custom control used to edit properties of an object.
-class_name Inspector, "res://addons/object-inspector/icons/inspector_container.svg"
+class_name Inspector
 extends VBoxContainer
 
 ## Emitted when object changed.
