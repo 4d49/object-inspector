@@ -158,11 +158,11 @@ class InspectorProperty extends RefCounted:
 			return null
 		
 		var container : BoxContainer = VBoxContainer.new() if vertical else HBoxContainer.new()
-		container.hint_tooltip = name
+		container.tooltip_text = name
 		
 		var label = Label.new()
 		label.text = tr(name).capitalize()
-		label.hint_tooltip = label.text
+		label.tooltip_text = label.text
 		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -187,14 +187,14 @@ class InspectorPropertyCheck extends InspectorProperty:
 		var check := CheckBox.new()
 		check.button_pressed = object.get(property_name)
 		check.text = tr("On")
-		check.hint_tooltip = str(check.button_pressed)
+		check.tooltip_text = str(check.button_pressed)
 		check.disabled = not is_editable(object, property, readonly)
 		check.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		check.toggled.connect(func(value: bool) -> void:
 			object.set(property_name, value)
 			check.button_pressed = object.get(property_name)
-			check.hint_tooltip = str(check.button_pressed)
+			check.tooltip_text = str(check.button_pressed)
 		)
 		
 		return create_combo_container(property_name, check)
@@ -213,13 +213,13 @@ class InspectorPropertySpin extends InspectorProperty:
 		spin.step = 1.0 if property.type == TYPE_INT else 0.001
 		spin.value = object.get(property_name)
 		spin.editable = is_editable(object, property, readonly)
-		spin.hint_tooltip = str(spin.value)
+		spin.tooltip_text = str(spin.value)
 		spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		spin.value_changed.connect(func(value: float) -> void:
 			object.set(property_name, value)
 			spin.value = object.get(property_name)
-			spin.hint_tooltip = str(spin.value)
+			spin.tooltip_text = str(spin.value)
 		)
 		
 		var split : PackedStringArray = String(property.hint_string).split(',', false)
@@ -246,13 +246,13 @@ class InspectorPropertySlider extends InspectorProperty:
 		slider.step = 1.0 if property.type == TYPE_INT else 0.001
 		slider.value = object.get(property_name)
 		slider.editable = is_editable(object, property, readonly)
-		slider.hint_tooltip = str(slider.value)
+		slider.tooltip_text = str(slider.value)
 		slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		slider.value_changed.connect(func(value: float) -> void:
 			object.set(property_name, value)
 			slider.value = object.get(property_name)
-			slider.hint_tooltip = str(slider.value)
+			slider.tooltip_text = str(slider.value)
 		)
 		
 		var split : PackedStringArray = String(property.hint_string).split(',', false)
@@ -275,7 +275,7 @@ class InspectorPropertyLine extends InspectorProperty:
 		
 		var line := LineEdit.new()
 		line.text = object.get(property_name)
-		line.hint_tooltip = line.text
+		line.tooltip_text = line.text
 		line.editable = is_editable(object, property, readonly)
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
@@ -284,7 +284,7 @@ class InspectorPropertyLine extends InspectorProperty:
 			
 			var caret := line.caret_column
 			line.text = object.get(property_name)
-			line.hint_tooltip = line.text
+			line.tooltip_text = line.text
 			line.caret_column = caret
 		)
 		
@@ -301,7 +301,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		
 		var text_edit := TextEdit.new()
 		text_edit.text = object.get(property_name)
-		text_edit.hint_tooltip = text_edit.text
+		text_edit.tooltip_text = text_edit.text
 		text_edit.editable = is_editable(object, property, readonly)
 		text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 		text_edit.custom_minimum_size = Vector2(24.0, 96.0)
@@ -321,7 +321,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		
 		var window_edit := TextEdit.new()
 		window_edit.text = text_edit.text
-		window_edit.hint_tooltip = window_edit.text
+		window_edit.tooltip_text = window_edit.text
 		window.add_child(window_edit)
 		# TextEdit don't emit changed text.
 		var callable = func(edit: TextEdit) -> void:
@@ -331,7 +331,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 			var line := text_edit.get_caret_line()
 			
 			text_edit.text = object.get(property_name)
-			text_edit.hint_tooltip = text_edit.text
+			text_edit.tooltip_text = text_edit.text
 			text_edit.set_caret_column(column)
 			text_edit.set_caret_line(line)
 			
@@ -339,7 +339,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 			line = window_edit.get_caret_line()
 			
 			window_edit.text = text_edit.text
-			window_edit.hint_tooltip = window_edit.text
+			window_edit.tooltip_text = window_edit.text
 			window_edit.set_caret_column(column)
 			window_edit.set_caret_line(line)
 		
@@ -368,14 +368,14 @@ class InspectorPropertyVector2 extends InspectorProperty:
 		x_spin.max_value = INF
 		x_spin.step = 1.0 if property.type == TYPE_VECTOR2I else 0.001
 		x_spin.value = value.x
-		x_spin.hint_tooltip = str(value.x)
+		x_spin.tooltip_text = str(value.x)
 		x_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		vbox.add_child(x_spin)
 		
 		var y_spin : SpinBox = x_spin.duplicate()
 		y_spin.prefix = "y"
 		y_spin.value = value.y
-		y_spin.hint_tooltip = str(value.y)
+		y_spin.tooltip_text = str(value.y)
 		vbox.add_child(y_spin)
 		
 		var callable = func(_value) -> void:
@@ -383,10 +383,10 @@ class InspectorPropertyVector2 extends InspectorProperty:
 			value = object.get(property_name)
 			
 			x_spin.value = value.x
-			x_spin.hint_tooltip = str(x_spin.value)
+			x_spin.tooltip_text = str(x_spin.value)
 			
 			y_spin.value = value.y
-			y_spin.hint_tooltip = str(y_spin.value)
+			y_spin.tooltip_text = str(y_spin.value)
 		
 		x_spin.value_changed.connect(callable)
 		y_spin.value_changed.connect(callable)
@@ -411,20 +411,20 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		x_spin.max_value = INF
 		x_spin.step = 1.0 if property.type == TYPE_VECTOR3I else 0.001
 		x_spin.value = value.x
-		x_spin.hint_tooltip = str(x_spin.value)
+		x_spin.tooltip_text = str(x_spin.value)
 		x_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hbox.add_child(x_spin)
 		
 		var y_spin : SpinBox = x_spin.duplicate()
 		y_spin.prefix = "y"
 		y_spin.value = value.y
-		y_spin.hint_tooltip = str(y_spin.value)
+		y_spin.tooltip_text = str(y_spin.value)
 		hbox.add_child(y_spin)
 		
 		var z_spin : SpinBox = x_spin.duplicate()
 		z_spin.prefix = "z"
 		z_spin.value = value.z
-		z_spin.hint_tooltip = str(z_spin.value)
+		z_spin.tooltip_text = str(z_spin.value)
 		hbox.add_child(z_spin)
 		
 		var callable = func(_value) -> void:
@@ -432,13 +432,13 @@ class InspectorPropertyVector3 extends InspectorProperty:
 			value = object.get(property_name)
 			
 			x_spin.value = value.x
-			x_spin.hint_tooltip = str(x_spin.value)
+			x_spin.tooltip_text = str(x_spin.value)
 			
 			y_spin.value = value.y
-			y_spin.hint_tooltip = str(y_spin.value)
+			y_spin.tooltip_text = str(y_spin.value)
 			
 			z_spin.value = value.z
-			z_spin.hint_tooltip = str(z_spin.value)
+			z_spin.tooltip_text = str(z_spin.value)
 		
 		x_spin.value_changed.connect(callable)
 		y_spin.value_changed.connect(callable)
@@ -456,7 +456,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		
 		var picker := ColorPickerButton.new()
 		picker.color = object.get(property_name)
-		picker.hint_tooltip = str(picker.color)
+		picker.tooltip_text = str(picker.color)
 		picker.disabled = not is_editable(object, property, readonly)
 		picker.edit_alpha = not property.hint == PROPERTY_HINT_COLOR_NO_ALPHA
 		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -464,7 +464,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		picker.color_changed.connect(func(value: Color) -> void:
 			object.set(property_name, value)
 			picker.color = object.get(property_name)
-			picker.hint_tooltip = str(picker.color)
+			picker.tooltip_text = str(picker.color)
 		)
 		
 		return create_combo_container(property_name, picker)
