@@ -158,7 +158,6 @@ class InspectorProperty extends RefCounted:
 			return null
 		
 		var container : BoxContainer = VBoxContainer.new() if vertical else HBoxContainer.new()
-		container.tooltip_text = name
 		
 		var label = Label.new()
 		label.text = tr(name).capitalize()
