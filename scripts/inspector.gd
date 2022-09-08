@@ -167,7 +167,6 @@ class InspectorProperty extends RefCounted:
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		label.size_flags_stretch_ratio = 0.5
 		container.add_child(label)
 		
 		control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
