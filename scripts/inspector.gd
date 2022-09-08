@@ -157,7 +157,8 @@ class InspectorProperty extends RefCounted:
 		if not is_instance_valid(control):
 			return null
 		
-		var container : BoxContainer = VBoxContainer.new() if vertical else HBoxContainer.new()
+		var container := BoxContainer.new()
+		container.vertical = vertical
 		
 		var label = Label.new()
 		label.text = tr(name).capitalize()
