@@ -61,7 +61,7 @@ func _init_properties() -> void:
 	self.add_inspector_property(InspectorPropertyEnum.new())
 	self.add_inspector_property(InspectorPropertyFlags.new())
 
-## Add a custom [InspectorProperty].
+## Add a custom [Inspector.InspectorProperty].
 func add_inspector_property(property: InspectorProperty) -> void:
 	assert(is_instance_valid(property), "Invalid InspectorProperty.")
 	if is_instance_valid(property):
@@ -137,7 +137,7 @@ func update_inspector(filter: String = _search.text) -> void:
 
 ## Base InspectorProperty class.
 ## 
-## For inherited classes, override [method can_handle] and [method get_control] methods.
+## For inherited classes, override [method can_handle] and [method create_control] methods.
 class InspectorProperty extends RefCounted:
 	## Return [param true] if [InspectorProperty] can handle the object and property.
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
@@ -153,7 +153,7 @@ class InspectorProperty extends RefCounted:
 	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
 		return null
 	
-	## Return [VBoxContainer] or [HBoxContainer] with [Label] and custom [Control] as children.
+	## Return [BoxContainer] with [Label] and custom [Control] as children.
 	func create_combo_container(name: StringName, control: Control, vertical: bool = false) -> BoxContainer:
 		assert(is_instance_valid(control), "Invalid Control.")
 		if not is_instance_valid(control):
