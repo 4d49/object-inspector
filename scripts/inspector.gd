@@ -128,7 +128,7 @@ func update_inspector(filter: String = _search.text) -> void:
 	_container.size_flags_vertical = SIZE_EXPAND_FILL
 	
 	for property in _object.get_property_list():
-		if is_valid_property(property) and filter.is_subsequence_of(property.name):
+		if is_valid_property(property) and filter.is_subsequence_ofn(property.name):
 			var property_control = create_property_control(_object, property)
 			if is_instance_valid(property_control):
 				_container.add_child(property_control)
