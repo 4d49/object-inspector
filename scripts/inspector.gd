@@ -45,9 +45,11 @@ func _init() -> void:
 	_scroll_container.size_flags_horizontal = SIZE_EXPAND_FILL
 	_scroll_container.size_flags_vertical = SIZE_EXPAND_FILL
 	self.add_child(_scroll_container)
+	
+	_init_properties()
 
-
-func _ready() -> void:
+## Override for add([method add_inspector_property]) custom [Inspector.InspectorProperty].
+func _init_properties() -> void:
 	self.add_inspector_property(InspectorPropertyCheck.new())
 	self.add_inspector_property(InspectorPropertySpin.new())
 	self.add_inspector_property(InspectorPropertySlider.new())
