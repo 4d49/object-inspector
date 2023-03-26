@@ -21,7 +21,7 @@ In-game object inspector for Godot 4.0.
 4. Profit.
 
 # License
-Copyright (c) 2022 Mansur Isaev and contributors
+Copyright (c) 2023 Mansur Isaev and contributors
 
 Unless otherwise specified, files in this repository are licensed under the
 MIT license. See [LICENSE.md](LICENSE.md) for more information.
