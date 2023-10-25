@@ -144,7 +144,7 @@ func update_inspector(filter: String = _search.text) -> void:
 	_scroll_container.add_child(_container)
 
 ## Base InspectorProperty class.
-## 
+##
 ## For inherited classes, override [method can_handle] and [method create_control] methods.
 class InspectorProperty extends RefCounted:
 	## Return [param true] if [InspectorProperty] can handle the object and property.
@@ -220,6 +220,7 @@ class InspectorPropertySpin extends InspectorProperty:
 		spin.min_value = FLOAT_MIN
 		spin.max_value = FLOAT_MAX
 		spin.step = 1.0 if property["type"] == TYPE_INT else 0.001
+		spin.rounded = property["type"] == TYPE_INT
 		spin.value = object.get(property_name)
 		spin.editable = is_editable(object, property, readonly)
 		spin.tooltip_text = str(spin.value)
