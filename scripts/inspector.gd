@@ -487,6 +487,7 @@ class InspectorPropertyEnum extends InspectorProperty:
 
 	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
 		var option_button := OptionButton.new()
+		option_button.clip_text = true
 		option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		option_button.disabled = not is_editable(object, property, readonly)
 
