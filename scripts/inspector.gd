@@ -57,7 +57,6 @@ func _init() -> void:
 func _init_properties() -> void:
 	self.add_inspector_property(InspectorPropertyCheck.new())
 	self.add_inspector_property(InspectorPropertySpin.new())
-	self.add_inspector_property(InspectorPropertySlider.new())
 	self.add_inspector_property(InspectorPropertyLine.new())
 	self.add_inspector_property(InspectorPropertyMultiline.new())
 	self.add_inspector_property(InspectorPropertyVector2.new())
@@ -112,9 +111,6 @@ func clear() -> void:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
-	if property["hint"] == PROPERTY_HINT_ENUM:
-		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
-
 	return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
 
 ## Return [Control] for property.
@@ -244,40 +240,6 @@ class InspectorPropertySpin extends InspectorProperty:
 				spin.step = split[2].to_float()
 
 		return create_combo_container(property_name, spin)
-
-## Handle [int] or [float] property with [param @export_range] annotation.
-class InspectorPropertySlider extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["hint"] == PROPERTY_HINT_RANGE and (property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT)
-
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-
-		var slider := HSlider.new()
-		slider.mouse_filter = Control.MOUSE_FILTER_STOP
-		slider.min_value = FLOAT_MIN
-		slider.max_value = FLOAT_MAX
-		slider.step = 1.0 if property["type"] == TYPE_INT else 0.001
-		slider.value = object.get(property_name)
-		slider.editable = is_editable(object, property, readonly)
-		slider.tooltip_text = str(slider.value)
-		slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-		slider.value_changed.connect(func(value: float) -> void:
-			object.set(property_name, value)
-			slider.set_value_no_signal(object.get(property_name))
-			slider.set_tooltip_text(str(slider.value))
-		)
-
-		var split : PackedStringArray = String(property["hint_string"]).split(',', false)
-		if split.size() >= 2:
-			slider.min_value = split[0].to_float()
-			slider.max_value = split[1].to_float()
-
-			if split.size() >= 3:
-				slider.step = split[2].to_float()
-
-		return create_combo_container(property_name, slider)
 
 ## Handle [String] or [StringName] property.
 class InspectorPropertyLine extends InspectorProperty:
