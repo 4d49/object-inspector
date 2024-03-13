@@ -111,6 +111,9 @@ func clear() -> void:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
+	if property["hint"] == PROPERTY_HINT_ENUM:
+		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
+
 	return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
 
 ## Return [Control] for property.
@@ -457,9 +460,16 @@ class InspectorPropertyEnum extends InspectorProperty:
 		option_button.disabled = not is_editable(object, property, readonly)
 
 		var popup : PopupMenu = option_button.get_popup()
-		for s in String(property["hint_string"]).split(",", false):
-			var split := s.split(":", false) # [name, value]
-			popup.add_item(split[0], split[1].to_int())
+		var hint_split: PackedStringArray = String(property["hint_string"]).split(",", false)
+
+		for i: int in hint_split.size():
+			var split := hint_split[i].split(":", false)
+
+			# If key-value pair.
+			if split.size() > 1 and split[1].is_valid_int():
+				popup.add_item(split[0], split[1].to_int())
+			else:
+				popup.add_item(split[0], i)
 
 		var property_name := StringName(property["name"])
 		option_button.selected = popup.get_item_index(object.get(property_name))
