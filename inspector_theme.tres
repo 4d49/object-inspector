@@ -1,0 +1,80 @@
+[gd_resource type="Theme" load_steps=9 format=3 uid="uid://dyf67c0ud50ts"]
+
+[ext_resource type="Texture2D" uid="uid://cr6jrnuywr8g4" path="res://addons/object-inspector/icons/maximize.svg" id="1_hfaeu"]
+[ext_resource type="Texture2D" uid="uid://cfw5fv6chuy5o" path="res://addons/object-inspector/icons/collapsed.svg" id="1_hpca1"]
+[ext_resource type="Texture2D" uid="uid://dec8bwwwl2po1" path="res://addons/object-inspector/icons/expanded.svg" id="2_0jwgf"]
+[ext_resource type="Texture2D" uid="uid://bq3g4y2emis6p" path="res://addons/object-inspector/icons/search.svg" id="2_vebvf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h08j0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3ctcn"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.5, 0.25, 0.25, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.25, 0.25, 0.5)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+corner_detail = 2
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_idiuy"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.45, 0.5, 0.25, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.5, 0.25, 0.5)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+corner_detail = 2
+anti_aliasing = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cncyr"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.25, 0.5, 0.35, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.5, 0.35, 0.5)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+corner_detail = 2
+anti_aliasing = false
+
+[resource]
+BoxContainer/constants/separation = 1
+FlowContainer/constants/h_separation = 1
+FlowContainer/constants/v_separation = 1
+Inspector/base_type = &"VBoxContainer"
+Inspector/icons/maximize = ExtResource("1_hfaeu")
+Inspector/icons/search = ExtResource("2_vebvf")
+InspectorProperty/base_type = &"PanelContainer"
+InspectorProperty/styles/panel = SubResource("StyleBoxEmpty_h08j0")
+InspectorPropertyCategory/base_type = &"PanelContainer"
+InspectorPropertyCategory/styles/panel = SubResource("StyleBoxFlat_3ctcn")
+InspectorPropertyGroup/base_type = &"PanelContainer"
+InspectorPropertyGroup/icons/collapsed = ExtResource("1_hpca1")
+InspectorPropertyGroup/icons/expanded = ExtResource("2_0jwgf")
+InspectorPropertyGroup/styles/panel = SubResource("StyleBoxFlat_idiuy")
+InspectorPropertySubGroup/base_type = &"InspectorPropertyGroup"
+InspectorPropertySubGroup/styles/panel = SubResource("StyleBoxFlat_cncyr")
