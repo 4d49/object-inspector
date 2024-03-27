@@ -21,7 +21,6 @@ var _search_enabled := true:
 	get = is_search_enabled
 
 
-var _properties : Array[InspectorProperty]
 var _object : Object
 
 var _search : LineEdit
@@ -46,26 +45,6 @@ func _init() -> void:
 	_scroll_container.size_flags_horizontal = SIZE_EXPAND_FILL
 	_scroll_container.size_flags_vertical = SIZE_EXPAND_FILL
 	self.add_child(_scroll_container)
-
-	_init_properties()
-
-## Override for add([method add_inspector_property]) custom [Inspector.InspectorProperty].
-func _init_properties() -> void:
-	self.add_inspector_property(InspectorProperty.InspectorPropertyCheck.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertySpin.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyLine.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyMultiline.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyVector2.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyVector3.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyColor.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyEnum.new())
-	self.add_inspector_property(InspectorProperty.InspectorPropertyFlags.new())
-
-## Add a custom [Inspector.InspectorProperty].
-func add_inspector_property(property: InspectorProperty) -> void:
-	assert(is_instance_valid(property), "Invalid InspectorProperty.")
-	if is_instance_valid(property):
-		_properties.push_front(property)
 
 ## Set Inspector readonly.
 func set_readonly(value: bool) -> void:
@@ -114,11 +93,7 @@ func is_valid_property(property: Dictionary) -> bool:
 
 ## Return [Control] for property.
 func create_property_control(object: Object, property: Dictionary) -> Control:
-	for p in _properties:
-		if p.can_handle(object, property, is_readonly()):
-			return p.create_control(object, property, is_readonly())
-
-	return null
+	return InspectorProperty.create_property(object, property)
 
 ## Update Inspector properties.
 func update_inspector(filter: String = _search.text) -> void:

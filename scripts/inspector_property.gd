@@ -7,6 +7,41 @@
 class_name InspectorProperty
 extends RefCounted
 
+
+static var _declarations: Array[Dictionary] = []
+
+
+static func declare_property(validation: Callable, constructor: Callable) -> void:
+	assert(validation.is_valid(), "Invalid validation Callable.")
+	assert(constructor.is_valid(), "Invalid constructor Callable.")
+
+	if validation.is_valid() and constructor.is_valid():
+		_declarations.push_front({"validation": validation, "constructor": constructor})
+
+
+static func create_property(object: Object, property: Dictionary) -> Control:
+	assert(is_instance_valid(object), "Invalid Object!")
+	if not is_instance_valid(object):
+		return null
+
+	for decl: Dictionary in _declarations:
+		var validation: Callable = decl["validation"]
+		if not validation.is_valid() or not validation.call(object, property):
+			continue
+
+		var constructor: Callable = decl["constructor"]
+		if not constructor.is_valid():
+			continue
+
+		var control: Control = constructor.call(object, property)
+		if is_instance_valid(control):
+			control.set_name(property["name"])
+			return control
+
+	return null
+	
+	
+	
 # Magic numbers, but otherwise the SpinBox does not work correctly.
 const FLOAT_MIN = -999999999999.9
 const FLOAT_MAX =  999999999999.9
