@@ -9,6 +9,9 @@ extends VBoxContainer
 ## Emitted when object changed.
 signal object_changed(object: Object)
 
+# INFO: Required for static initialization.
+const InspectorProperties = preload("res://addons/object-inspector/scripts/inspector_properties.gd")
+
 
 @export
 var _readonly := false:

@@ -1,328 +1,326 @@
 # Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
+# Magic numbers, but otherwise the SpinBox does not work correctly.
+const INT32_MIN = -2147483648
+const INT32_MAX =  2147483647
+
 ## Handle [bool] property.
-class InspectorPropertyCheck extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+class InspectorPropertyBool extends InspectorProperty:
+	var _check_box: CheckBox = null
+
+	func _enter_tree() -> void:
+		_check_box = CheckBox.new()
+		_check_box.set_text("On")
+		_check_box.set_pressed_no_signal(get_value())
+		_check_box.toggled.connect(_on_check_box_toggled)
+
+		create_combo_container(get_property(), _check_box)
+
+	func _on_check_box_toggled(toggled: bool) -> void:
+		_check_box.set_pressed_no_signal(set_and_return_value(toggled))
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_BOOL
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-
-		var check := CheckBox.new()
-		check.button_pressed = object.get(property_name)
-		check.text = tr("On")
-		check.tooltip_text = str(check.button_pressed)
-		check.disabled = not is_editable(object, property, readonly)
-		check.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-		check.toggled.connect(func(value: bool) -> void:
-			object.set(property_name, value)
-			check.button_pressed = object.get(property_name)
-			check.tooltip_text = str(check.button_pressed)
-		)
-
-		return create_combo_container(property_name, check)
-
 ## Handle [int] or [float] property.
-class InspectorPropertySpin extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+class InspectorPropertyNumber extends InspectorProperty:
+	var _spin_box: SpinBox = null
+
+	func _enter_tree() -> void:
+		_spin_box = SpinBox.new()
+
+		if get_hint() == PROPERTY_HINT_RANGE:
+			var split: PackedStringArray = get_hint_string().split(',', false)
+
+			_spin_box.set_min(split[0].to_float() if split.size() >= 1 and split[0].is_valid_float() else INT32_MIN)
+			_spin_box.set_max(split[1].to_float() if split.size() >= 2 and split[1].is_valid_float() else INT32_MAX)
+			_spin_box.set_step(split[2].to_float() if split.size() >= 3 and split[2].is_valid_float() else 1.0 if get_type() == TYPE_INT else 0.001)
+		else:
+			_spin_box.set_min(INT32_MIN)
+			_spin_box.set_max(INT32_MAX)
+			_spin_box.set_step(1.0 if get_type() == TYPE_INT else 0.001)
+
+		_spin_box.set_use_rounded_values(get_type() == TYPE_INT)
+		_spin_box.set_value_no_signal(get_value())
+		_spin_box.value_changed.connect(_on_spin_box_value_changed)
+
+		create_combo_container(get_property(), _spin_box)
+
+	func _on_spin_box_value_changed(value: float) -> void:
+		_spin_box.set_value_no_signal(set_and_return_value(value))
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-
-		var spin := SpinBox.new()
-		spin.min_value = FLOAT_MIN
-		spin.max_value = FLOAT_MAX
-		spin.step = 1.0 if property["type"] == TYPE_INT else 0.001
-		spin.rounded = property["type"] == TYPE_INT
-		spin.value = object.get(property_name)
-		spin.editable = is_editable(object, property, readonly)
-		spin.tooltip_text = str(spin.value)
-		spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-		spin.value_changed.connect(func(value: float) -> void:
-			object.set(property_name, value)
-			spin.set_value_no_signal(object.get(property_name))
-			spin.set_tooltip_text(str(spin.value))
-		)
-
-		var split : PackedStringArray = String(property["hint_string"]).split(',', false)
-		if split.size() >= 2:
-			spin.min_value = split[0].to_float()
-			spin.max_value = split[1].to_float()
-
-			if split.size() >= 3:
-				spin.step = split[2].to_float()
-
-		return create_combo_container(property_name, spin)
-
 ## Handle [String] or [StringName] property.
-class InspectorPropertyLine extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+class InspectorPropertyString extends InspectorProperty:
+	var _line_edit: LineEdit = null
+
+	func _enter_tree() -> void:
+		_line_edit = LineEdit.new()
+		_line_edit.set_text(get_value())
+		_line_edit.text_changed.connect(_on_line_edit_text_changed)
+
+		create_combo_container(get_property(), _line_edit)
+
+	func _on_line_edit_text_changed(text: String) -> void:
+		var caret := _line_edit.get_caret_column()
+		_line_edit.set_text(set_and_return_value(text))
+		_line_edit.set_caret_column(caret)
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
-
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-
-		var line := LineEdit.new()
-		line.text = object.get(property_name)
-		line.tooltip_text = line.text
-		line.editable = is_editable(object, property, readonly)
-		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-		line.text_changed.connect(func(value: String) -> void:
-			object.set(property_name, value)
-
-			var caret := line.caret_column
-			line.text = object.get(property_name)
-			line.tooltip_text = line.text
-			line.caret_column = caret
-		)
-
-		return create_combo_container(property_name, line)
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
 class InspectorPropertyMultiline extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
+	var _text_edit: TextEdit = null
+	var _maximize: Button = null
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
+	var _window: AcceptDialog = null
+	var _window_text_edit: TextEdit = null
+
+	func _enter_tree() -> void:
+		_text_edit = TextEdit.new()
+		_text_edit.set_name("TextEdit")
+		_text_edit.set_text(get_value())
+		_text_edit.set_tooltip_text(_text_edit.get_text())
+		_text_edit.set_line_wrapping_mode(TextEdit.LINE_WRAPPING_BOUNDARY)
+		_text_edit.set_custom_minimum_size(Vector2(24.0, 96.0))
+		_text_edit.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_text_edit.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		_text_edit.text_changed.connect(_on_text_edit_text_changed)
+
 		var hbox := HBoxContainer.new()
+		hbox.add_child(_text_edit)
 
-		var text_edit := TextEdit.new()
-		text_edit.text = object.get(property_name)
-		text_edit.tooltip_text = text_edit.text
-		text_edit.editable = is_editable(object, property, readonly)
-		text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-		text_edit.custom_minimum_size = Vector2(24.0, 96.0)
-		text_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(text_edit)
+		_maximize = Button.new()
+		_maximize.set_name("Maximize")
+		_maximize.set_button_icon(preload("res://addons/object-inspector/icons/maximize.svg"))
+		_maximize.set_flat(true)
+		_maximize.set_v_size_flags(Control.SIZE_SHRINK_CENTER)
+		_maximize.pressed.connect(_on_maximize_pressed)
+		hbox.add_child(_maximize)
 
-		var maximize := Button.new()
-		maximize.icon = load("addons/object-inspector/icons/maximize.svg")
-		maximize.disabled = not text_edit.editable
-		maximize.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		hbox.add_child(maximize)
+		create_combo_container(get_property(), hbox, true)
 
-		var window := AcceptDialog.new()
-		window.title = "Text edit"
-		window.min_size = Vector2(640, 480)
-		hbox.add_child(window)
+	func _on_text_edit_text_changed() -> void:
+		var column: int = _text_edit.get_caret_column()
+		var line: int = _text_edit.get_caret_line()
 
-		var window_edit := TextEdit.new()
-		window_edit.text = text_edit.text
-		window_edit.tooltip_text = window_edit.text
-		window.add_child(window_edit)
-		# TextEdit don't emit changed text.
-		var callable = func(edit: TextEdit) -> void:
-			object.set(property_name, edit.text)
+		_text_edit.set_text(set_and_return_value(_text_edit.get_text()))
+		_text_edit.set_caret_column(column)
+		_text_edit.set_caret_line(line)
 
-			var column := text_edit.get_caret_column()
-			var line := text_edit.get_caret_line()
+	func _on_window_confirmed() -> void:
+		var column: int = _window_text_edit.get_caret_column()
+		var line: int = _window_text_edit.get_caret_line()
 
-			text_edit.text = object.get(property_name)
-			text_edit.tooltip_text = text_edit.text
-			text_edit.set_caret_column(column)
-			text_edit.set_caret_line(line)
+		_window_text_edit.set_text(set_and_return_value(_window_text_edit.get_text()))
+		_window_text_edit.set_caret_column(column)
+		_window_text_edit.set_caret_line(line)
+		_text_edit.set_text(_window_text_edit.get_text())
 
-			column = window_edit.get_caret_column()
-			line = window_edit.get_caret_line()
+	func _on_maximize_pressed() -> void:
+		if not is_instance_valid(_window):
+			_window = AcceptDialog.new()
+			_window.set_name("EditTextDialog")
+			_window.set_title("Text edit")
+			_window.set_min_size(Vector2(640, 480))
+			_window.add_cancel_button("Cancel")
+			_window.set_ok_button_text("Save")
+			_window.confirmed.connect(_on_window_confirmed)
+			self.add_child(_window)
 
-			window_edit.text = text_edit.text
-			window_edit.tooltip_text = window_edit.text
-			window_edit.set_caret_column(column)
-			window_edit.set_caret_line(line)
+			_window_text_edit = TextEdit.new()
+			_window_text_edit.set_name("TextEdit")
+			_window_text_edit.set_text(get_value())
+			_window.add_child(_window_text_edit)
 
-		maximize.pressed.connect(window.popup_centered)
-		text_edit.text_changed.connect(callable.bind(text_edit))
-		window.confirmed.connect(callable.bind(window_edit))
+		_window_text_edit.set_text(get_value())
+		_window.popup_centered_clamped(Vector2(640, 480))
 
-		return create_combo_container(property_name, hbox, true)
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
 
 ## Handle [Vector2] or [Vector2i] property.
 class InspectorPropertyVector2 extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
+	var _x_spin: SpinBox = null
+	var _y_spin: SpinBox = null
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-		var value : Vector2 = object.get(property_name)
-
+	func _enter_tree() -> void:
 		var vbox = VBoxContainer.new()
-		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
-		var x_spin := SpinBox.new()
-		x_spin.editable = is_editable(object, property, readonly)
-		x_spin.prefix = "x"
-		x_spin.min_value = FLOAT_MIN
-		x_spin.max_value = FLOAT_MAX
-		x_spin.step = 1.0 if property["type"] == TYPE_VECTOR2I else 0.001
-		x_spin.value = value.x
-		x_spin.tooltip_text = str(value.x)
-		x_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		vbox.add_child(x_spin)
+		var value: Vector2 = get_value()
 
-		var y_spin := x_spin.duplicate() as SpinBox
-		y_spin.prefix = "y"
-		y_spin.value = value.y
-		y_spin.tooltip_text = str(value.y)
-		vbox.add_child(y_spin)
+		_x_spin = SpinBox.new()
+		_x_spin.set_name("x")
+		_x_spin.set_prefix("x")
+		_x_spin.set_min(INT32_MIN)
+		_x_spin.set_max(INT32_MAX)
+		_x_spin.set_step(1.0 if get_type() == TYPE_VECTOR2I else 0.001)
+		_x_spin.set_use_rounded_values(get_type() == TYPE_VECTOR2I)
+		_x_spin.set_value_no_signal(value.x)
+		_x_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_x_spin.value_changed.connect(_on_value_changed)
+		vbox.add_child(_x_spin)
 
-		var callable = func(_value) -> void:
-			object.set(property_name, Vector2(x_spin.value, y_spin.value))
-			value = object.get(property_name)
+		_y_spin = _x_spin.duplicate()
+		_y_spin.set_name("y")
+		_y_spin.set_prefix("y")
+		_y_spin.set_value_no_signal(value.y)
+		_y_spin.value_changed.connect(_on_value_changed)
+		vbox.add_child(_y_spin)
 
-			x_spin.set_value_no_signal(value.x)
-			x_spin.set_tooltip_text(str(value.x))
+		var label: Label = create_combo_container(get_property(), vbox).get_node(^"Label")
+		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
-			y_spin.set_value_no_signal(value.y)
-			y_spin.set_tooltip_text(str(value.y))
+	func _on_value_changed(_value: float) -> void:
+		var value: Vector2 = set_and_return_value(Vector2(_x_spin.get_value(), _y_spin.get_value()))
+		_x_spin.set_value_no_signal(value.x)
+		_y_spin.set_value_no_signal(value.y)
 
-		x_spin.value_changed.connect(callable)
-		y_spin.value_changed.connect(callable)
-
-		return create_combo_container(property_name, vbox)
+	static func can_handle(object: Object, property: Dictionary) -> bool:
+		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
 class InspectorPropertyVector3 extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
+	var _x_spin: SpinBox = null
+	var _y_spin: SpinBox = null
+	var _z_spin: SpinBox = null
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-		var value : Vector3 = object.get(property_name)
-
+	func _enter_tree() -> void:
 		var hbox := HBoxContainer.new()
 
-		var x_spin := SpinBox.new()
-		x_spin.editable = is_editable(object, property, readonly)
-		x_spin.prefix = "x"
-		x_spin.min_value = FLOAT_MIN
-		x_spin.max_value = FLOAT_MAX
-		x_spin.step = 1.0 if property["type"] == TYPE_VECTOR3I else 0.001
-		x_spin.value = value.x
-		x_spin.tooltip_text = str(x_spin.value)
-		x_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(x_spin)
+		var value: Vector3 = get_value()
 
-		var y_spin := x_spin.duplicate() as SpinBox
-		y_spin.prefix = "y"
-		y_spin.value = value.y
-		y_spin.tooltip_text = str(y_spin.value)
-		hbox.add_child(y_spin)
+		_x_spin = SpinBox.new()
+		_x_spin.set_name("x")
+		_x_spin.set_prefix("x")
+		_x_spin.set_min(INT32_MIN)
+		_x_spin.set_max(INT32_MAX)
+		_x_spin.set_step(1.0 if get_type() == TYPE_VECTOR3I else 0.001)
+		_x_spin.set_use_rounded_values(get_type() == TYPE_VECTOR3I)
+		_x_spin.set_value_no_signal(value.x)
+		_x_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_x_spin.value_changed.connect(_on_value_changed)
+		hbox.add_child(_x_spin)
 
-		var z_spin := x_spin.duplicate() as SpinBox
-		z_spin.prefix = "z"
-		z_spin.value = value.z
-		z_spin.tooltip_text = str(z_spin.value)
-		hbox.add_child(z_spin)
+		_y_spin = _x_spin.duplicate()
+		_y_spin.set_name("y")
+		_y_spin.set_prefix("y")
+		_y_spin.set_value_no_signal(value.y)
+		_y_spin.value_changed.connect(_on_value_changed)
+		hbox.add_child(_y_spin)
 
-		var callable = func(_value) -> void:
-			object.set(property_name, Vector3(x_spin.value, y_spin.value, z_spin.value))
-			value = object.get(property_name)
+		_z_spin = _x_spin.duplicate()
+		_z_spin.set_name("z")
+		_z_spin.set_prefix("z")
+		_z_spin.set_value_no_signal(value.z)
+		_z_spin.value_changed.connect(_on_value_changed)
+		hbox.add_child(_z_spin)
 
-			x_spin.set_value_no_signal(value.x)
-			x_spin.set_tooltip_text(str(value.x))
+		create_combo_container(get_property(), hbox, true)
 
-			y_spin.set_value_no_signal(value.y)
-			y_spin.set_tooltip_text(str(value.y))
+	func _on_value_changed(_value: float) -> void:
+		var value: Vector3 = set_and_return_value(Vector3(_x_spin.get_value(), _y_spin.get_value(), _z_spin.get_value()))
+		_x_spin.set_value_no_signal(value.x)
+		_y_spin.set_value_no_signal(value.y)
+		_z_spin.set_value_no_signal(value.z)
 
-			z_spin.set_value_no_signal(value.z)
-			z_spin.set_tooltip_text(str(value.z))
-
-		x_spin.value_changed.connect(callable)
-		y_spin.value_changed.connect(callable)
-		z_spin.value_changed.connect(callable)
-
-		return create_combo_container(property_name, hbox, true)
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
 
 ## Handle [Color] property.
 class InspectorPropertyColor extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+	var _color_picker: ColorPickerButton = null
+
+	func _enter_tree() -> void:
+		_color_picker = ColorPickerButton.new()
+		_color_picker.set_pick_color(get_value())
+		_color_picker.set_edit_alpha(get_hint() == PROPERTY_HINT_COLOR_NO_ALPHA)
+		_color_picker.color_changed.connect(_on_picker_color_changed)
+
+		var picker: ColorPicker = _color_picker.get_picker()
+		picker.set_presets_visible(false)
+
+		create_combo_container(get_property(), _color_picker)
+
+	func _on_picker_color_changed(color: Color) -> void:
+		_color_picker.set_pick_color(set_and_return_value(color))
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_COLOR
-
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-
-		var picker := ColorPickerButton.new()
-		picker.color = object.get(property_name)
-		picker.tooltip_text = str(picker.color)
-		picker.disabled = not is_editable(object, property, readonly)
-		picker.edit_alpha = not property["hint"] == PROPERTY_HINT_COLOR_NO_ALPHA
-		picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-		picker.color_changed.connect(func(value: Color) -> void:
-			object.set(property_name, value)
-			picker.color = object.get(property_name)
-			picker.tooltip_text = str(picker.color)
-		)
-
-		return create_combo_container(property_name, picker)
 
 ## Handle [param enum] property.
 class InspectorPropertyEnum extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
+	var _option_button: OptionButton = null
 
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var option_button := OptionButton.new()
-		option_button.clip_text = true
-		option_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		option_button.disabled = not is_editable(object, property, readonly)
+	func _enter_tree() -> void:
+		_option_button = OptionButton.new()
+		_option_button.set_clip_text(true)
 
-		var popup : PopupMenu = option_button.get_popup()
-		var hint_split: PackedStringArray = String(property["hint_string"]).split(",", false)
+		var hint_split: PackedStringArray = get_hint_string().split(",", false)
 
 		for i: int in hint_split.size():
 			var split := hint_split[i].split(":", false)
 
 			# If key-value pair.
 			if split.size() > 1 and split[1].is_valid_int():
-				popup.add_item(split[0], split[1].to_int())
+				_option_button.add_item(split[0], split[1].to_int())
 			else:
-				popup.add_item(split[0], i)
+				_option_button.add_item(split[0], i)
 
-		var property_name := StringName(property["name"])
-		option_button.selected = popup.get_item_index(object.get(property_name))
+		_option_button.select(_option_button.get_item_index(get_value()))
+		_option_button.get_popup().id_pressed.connect(_on_id_pressed)
 
-		popup.id_pressed.connect(func(value: int) -> void:
-			object.set(property_name, value)
-			option_button.selected = popup.get_item_index(object.get(property_name))
-		)
+		create_combo_container(get_property(), _option_button)
 
-		return create_combo_container(property_name, option_button)
+	func _on_id_pressed(id: int) -> void:
+		_option_button.select(_option_button.get_item_index(set_and_return_value(id)))
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
 
 ## Handle [int] property with [param @export_flags] annotation.
 class InspectorPropertyFlags extends InspectorProperty:
-	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
-		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
-
-	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
-		var property_name := StringName(property["name"])
-		var value : int = object.get(property_name)
-
+	func _enter_tree() -> void:
 		var vbox = VBoxContainer.new()
-		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-		var split : PackedStringArray = String(property["hint_string"]).split(",", false)
+		var value: int = get_value()
+
+		var split : PackedStringArray = get_hint_string().split(",", false)
 		for i in split.size():
-			var check := CheckBox.new()
-			check.text = split[i]
-			check.button_pressed = value & (1 << i)
-			check.disabled = not is_editable(object, property, readonly)
+			var check_box := CheckBox.new()
+			check_box.set_text(split[i])
+			check_box.set_pressed(value & (1 << i))
 
-			check.toggled.connect(func(pressed: bool) -> void:
+			check_box.toggled.connect(func(pressed: bool) -> void:
 				if pressed:
-					object.set(property_name, object.get(property_name) | (1 << i))
+					set_value(get_value() | (1 << i))
 				else:
-					object.set(property_name, object.get(property_name) & ~(1 << i))
+					set_value(get_value() & ~(1 << i))
 
-				check.button_pressed = object.get(property_name) & 1 << i
+				check_box.set_pressed(get_value() & 1 << i)
 			)
 
-			vbox.add_child(check)
+			vbox.add_child(check_box)
 
-		return create_combo_container(property_name, vbox)
+		var label: Label = create_combo_container(get_property(), vbox).get_node(^"Label")
+		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
+
+
+static func _static_init() -> void:
+	InspectorProperty.declare_property(InspectorPropertyBool.can_handle, InspectorPropertyBool.new)
+	InspectorProperty.declare_property(InspectorPropertyNumber.can_handle, InspectorPropertyNumber.new)
+	InspectorProperty.declare_property(InspectorPropertyString.can_handle, InspectorPropertyString.new)
+	InspectorProperty.declare_property(InspectorPropertyMultiline.can_handle, InspectorPropertyMultiline.new)
+	InspectorProperty.declare_property(InspectorPropertyVector2.can_handle, InspectorPropertyVector2.new)
+	InspectorProperty.declare_property(InspectorPropertyVector3.can_handle, InspectorPropertyVector3.new)
+	InspectorProperty.declare_property(InspectorPropertyColor.can_handle, InspectorPropertyColor.new)
+	InspectorProperty.declare_property(InspectorPropertyEnum.can_handle, InspectorPropertyEnum.new)
+	InspectorProperty.declare_property(InspectorPropertyFlags.can_handle, InspectorPropertyFlags.new)
