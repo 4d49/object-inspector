@@ -25,6 +25,42 @@ class InspectorPropertyCategory extends InspectorProperty:
 	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_CATEGORY
 
+## Handle [annotation @GDScript.@export_group] property.
+class InspectorPropertyGroup extends InspectorProperty:
+	var _container: VBoxContainer = null
+	var _button: Button = null
+
+	func _enter_tree() -> void:
+		_container = VBoxContainer.new()
+		_container.set_name("Container")
+
+		add_theme_icon_override(&"expanded", get_theme_icon(&"expanded", &"Inspector"))
+		add_theme_icon_override(&"collapsed", get_theme_icon(&"collapsed", &"Inspector"))
+
+		_button = Button.new()
+		_button.set_name("Button")
+		_button.set_toggle_mode(true)
+		_button.set_flat(true)
+		_button.set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT)
+		_button.set_text(get_property().capitalize())
+		_button.set_button_icon(get_theme_icon(&"expanded"))
+		_button.toggled.connect(_on_button_toggled)
+		_container.add_child(_button, false, Node.INTERNAL_MODE_FRONT)
+
+		self.add_child(_container)
+
+	func _on_button_toggled(expanded: bool) -> void:
+		_button.set_button_icon(get_theme_icon(&"expanded") if expanded else get_theme_icon(&"collapsed"))
+
+		for i: int in _container.get_child_count():
+			var child: Node = _container.get_child(i)
+
+			if child is Control:
+				child.set_visible(expanded)
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["usage"] == PROPERTY_USAGE_GROUP
+
 ## Handle [bool] property.
 class InspectorPropertyBool extends InspectorProperty:
 	var _check_box: CheckBox = null
@@ -336,6 +372,7 @@ class InspectorPropertyFlags extends InspectorProperty:
 
 static func _static_init() -> void:
 	InspectorProperty.declare_property(InspectorPropertyCategory.can_handle, InspectorPropertyCategory.new)
+	InspectorProperty.declare_property(InspectorPropertyGroup.can_handle, InspectorPropertyGroup.new)
 	InspectorProperty.declare_property(InspectorPropertyBool.can_handle, InspectorPropertyBool.new)
 	InspectorProperty.declare_property(InspectorPropertyNumber.can_handle, InspectorPropertyNumber.new)
 	InspectorProperty.declare_property(InspectorPropertyString.can_handle, InspectorPropertyString.new)

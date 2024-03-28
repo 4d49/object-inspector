@@ -28,6 +28,11 @@ var _category_enadled: bool = true:
 	set = set_category_enabled,
 	get = is_category_enabled
 
+@export
+var _group_enabled: bool = true:
+	set = set_group_enabled,
+	get = is_group_enabled
+
 
 var _object : Object
 
@@ -95,6 +100,18 @@ func set_category_enabled(enabled: bool) -> void:
 func is_category_enabled() -> bool:
 	return _category_enadled
 
+## Set group handling enabled.
+func set_group_enabled(enabled: bool) -> void:
+	if _group_enabled == enabled:
+		return
+
+	_group_enabled = enabled
+	update_inspector()
+
+## Returns [param true] if group handling is enabled.
+func is_group_enabled() -> bool:
+	return _group_enabled
+
 ## Return edited object.
 func get_object() -> Object:
 	return _object
@@ -108,6 +125,9 @@ func clear() -> void:
 func is_valid_property(property: Dictionary) -> bool:
 	if property["usage"] == PROPERTY_USAGE_CATEGORY:
 		return is_category_enabled()
+
+	elif property["usage"] == PROPERTY_USAGE_GROUP:
+		return is_group_enabled()
 
 	elif property["hint"] == PROPERTY_HINT_ENUM:
 		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
@@ -135,6 +155,7 @@ func update_inspector(filter: String = _search.text) -> void:
 
 	var parent: Control = _container
 	var category: Control = null
+	var group: Control = null
 
 	for property in _object.get_property_list():
 		if not filter.is_subsequence_ofn(property["name"]) or not is_valid_property(property):
@@ -148,7 +169,7 @@ func update_inspector(filter: String = _search.text) -> void:
 		if is_category_enabled() and property["usage"] == PROPERTY_USAGE_CATEGORY:
 			_container.add_child(control)
 
-			assert(control.has_node(^"Container"), "Category property does not have a `Category` node!")
+			assert(control.has_node(^"Container"), "Category property does not have a `Container` node!")
 			if not control.has_node(^"Container"):
 				continue
 
@@ -159,6 +180,23 @@ func update_inspector(filter: String = _search.text) -> void:
 
 			parent = control.get_node(^"Container")
 			category = control
+
+		elif is_group_enabled() and property["usage"] == PROPERTY_USAGE_GROUP:
+			if is_instance_valid(category):
+				parent = category.get_node(^"Container")
+				parent.add_child(control)
+			else:
+				_container.add_child(control)
+
+			assert(control.has_node(^"Container"), "Group property does not have a `Container` node!")
+			if not control.has_node(^"Container"):
+				continue
+
+			if is_instance_valid(group) and parent.get_child_count() < 1:
+				group.queue_free()
+
+			parent = control.get_node(^"Container")
+			group = control
 
 		else:
 			parent.add_child(control)
