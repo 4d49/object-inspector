@@ -5,6 +5,26 @@
 const INT32_MIN = -2147483648
 const INT32_MAX =  2147483647
 
+## Handle [annotation @GDScript.@export_category] property.
+class InspectorPropertyCategory extends InspectorProperty:
+	var _container: VBoxContainer = null
+	var _title: Label = null
+
+	func _enter_tree() -> void:
+		_container = VBoxContainer.new()
+		_container.set_name("Container")
+
+		_title = Label.new()
+		_title.set_name("Title")
+		_title.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
+		_title.set_text(get_property().capitalize())
+		_container.add_child(_title, false, Node.INTERNAL_MODE_FRONT)
+
+		self.add_child(_container)
+
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
+		return property["usage"] == PROPERTY_USAGE_CATEGORY
+
 ## Handle [bool] property.
 class InspectorPropertyBool extends InspectorProperty:
 	var _check_box: CheckBox = null
@@ -315,6 +335,7 @@ class InspectorPropertyFlags extends InspectorProperty:
 
 
 static func _static_init() -> void:
+	InspectorProperty.declare_property(InspectorPropertyCategory.can_handle, InspectorPropertyCategory.new)
 	InspectorProperty.declare_property(InspectorPropertyBool.can_handle, InspectorPropertyBool.new)
 	InspectorProperty.declare_property(InspectorPropertyNumber.can_handle, InspectorPropertyNumber.new)
 	InspectorProperty.declare_property(InspectorPropertyString.can_handle, InspectorPropertyString.new)

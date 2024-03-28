@@ -23,6 +23,11 @@ var _search_enabled := true:
 	set = set_search_enabled,
 	get = is_search_enabled
 
+@export
+var _category_enadled: bool = true:
+	set = set_category_enabled,
+	get = is_category_enabled
+
 
 var _object : Object
 
@@ -78,6 +83,18 @@ func set_object(object: Object) -> void:
 
 	update_inspector()
 
+## Set category handling enabled.
+func set_category_enabled(enabled: bool) -> void:
+	if _category_enadled == enabled:
+		return
+
+	_category_enadled = enabled
+	update_inspector()
+
+## Returns [param true] if category handling is enabled.
+func is_category_enabled() -> bool:
+	return _category_enadled
+
 ## Return edited object.
 func get_object() -> Object:
 	return _object
@@ -89,7 +106,10 @@ func clear() -> void:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
-	if property["hint"] == PROPERTY_HINT_ENUM:
+	if property["usage"] == PROPERTY_USAGE_CATEGORY:
+		return is_category_enabled()
+
+	elif property["hint"] == PROPERTY_HINT_ENUM:
 		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
 
 	return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
@@ -108,13 +128,37 @@ func update_inspector(filter: String = _search.text) -> void:
 		return
 
 	_container = VBoxContainer.new()
-	_container.size_flags_horizontal = SIZE_EXPAND_FILL
-	_container.size_flags_vertical = SIZE_EXPAND_FILL
+	_container.set_name("Container")
+	_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+	_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+	_scroll_container.add_child(_container)
+
+	var parent: Control = _container
+	var category: Control = null
 
 	for property in _object.get_property_list():
-		if filter.is_subsequence_ofn(property["name"]) and is_valid_property(property):
-			var property_control = create_property_control(_object, property)
-			if is_instance_valid(property_control):
-				_container.add_child(property_control)
+		if not filter.is_subsequence_ofn(property["name"]) or not is_valid_property(property):
+			continue
 
-	_scroll_container.add_child(_container)
+		var control: Control = create_property_control(_object, property)
+		if not is_instance_valid(control):
+			continue
+
+		# TODO: Do something. I really don't like all the code below...
+		if is_category_enabled() and property["usage"] == PROPERTY_USAGE_CATEGORY:
+			_container.add_child(control)
+
+			assert(control.has_node(^"Container"), "Category property does not have a `Category` node!")
+			if not control.has_node(^"Container"):
+				continue
+
+			# INFO: Delete an empty category.
+			# TODO: Get rid of this code. Empty categories should not exist in principle.
+			if is_instance_valid(category) and parent.get_child_count() < 1:
+				category.queue_free()
+
+			parent = control.get_node(^"Container")
+			category = control
+
+		else:
+			parent.add_child(control)
