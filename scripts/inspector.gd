@@ -9,9 +9,6 @@ extends VBoxContainer
 ## Emitted when object changed.
 signal object_changed(object: Object)
 
-# INFO: Required for static initialization.
-const InspectorProperties = preload("res://addons/object-inspector/scripts/inspector_properties.gd")
-
 
 @export
 var _readonly := false:
@@ -55,7 +52,6 @@ func _init() -> void:
 
 	# INFO: Required for static initialization.
 	load("res://addons/object-inspector/scripts/inspector_property_array.gd")
-	load("res://addons/object-inspector/scripts/inspector_property_dictionary.gd")
 
 	_search = LineEdit.new()
 	_search.set_placeholder("Filter properties")
