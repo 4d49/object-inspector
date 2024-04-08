@@ -52,6 +52,7 @@ func _init() -> void:
 
 	# INFO: Required for static initialization.
 	load("res://addons/object-inspector/scripts/inspector_property_array.gd")
+	load("res://addons/object-inspector/scripts/inspector_property_dictionary.gd")
 
 	_search = LineEdit.new()
 	_search.set_placeholder("Filter properties")
