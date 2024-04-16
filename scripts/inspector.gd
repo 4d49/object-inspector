@@ -8,6 +8,8 @@ extends VBoxContainer
 
 ## Emitted when object changed.
 signal object_changed(object: Object)
+## Emitted when propterty changed.
+signal property_changed(object: Object, property_name: StringName)
 
 # Magic numbers, but otherwise the SpinBox does not work correctly.
 const FLOAT_MIN = -999999999999.9
@@ -55,15 +57,15 @@ func _init() -> void:
 
 ## Override for add([method add_inspector_property]) custom [Inspector.InspectorProperty].
 func _init_properties() -> void:
-	self.add_inspector_property(InspectorPropertyCheck.new())
-	self.add_inspector_property(InspectorPropertySpin.new())
-	self.add_inspector_property(InspectorPropertyLine.new())
-	self.add_inspector_property(InspectorPropertyMultiline.new())
-	self.add_inspector_property(InspectorPropertyVector2.new())
-	self.add_inspector_property(InspectorPropertyVector3.new())
-	self.add_inspector_property(InspectorPropertyColor.new())
-	self.add_inspector_property(InspectorPropertyEnum.new())
-	self.add_inspector_property(InspectorPropertyFlags.new())
+	self.add_inspector_property(InspectorPropertyCheck.new(self))
+	self.add_inspector_property(InspectorPropertySpin.new(self))
+	self.add_inspector_property(InspectorPropertyLine.new(self))
+	self.add_inspector_property(InspectorPropertyMultiline.new(self))
+	self.add_inspector_property(InspectorPropertyVector2.new(self))
+	self.add_inspector_property(InspectorPropertyVector3.new(self))
+	self.add_inspector_property(InspectorPropertyColor.new(self))
+	self.add_inspector_property(InspectorPropertyEnum.new(self))
+	self.add_inspector_property(InspectorPropertyFlags.new(self))
 
 ## Add a custom [Inspector.InspectorProperty].
 func add_inspector_property(property: InspectorProperty) -> void:
@@ -99,6 +101,9 @@ func set_object(object: Object) -> void:
 	object_changed.emit(object)
 
 	update_inspector()
+	
+func emit_object_changed(object: Object, propertyName: StringName) -> void:
+	property_changed.emit(object, propertyName)
 
 ## Return edited object.
 func get_object() -> Object:
@@ -189,6 +194,11 @@ class InspectorProperty extends RefCounted:
 
 ## Handle [bool] property.
 class InspectorPropertyCheck extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_BOOL
 
@@ -204,6 +214,7 @@ class InspectorPropertyCheck extends InspectorProperty:
 
 		check.toggled.connect(func(value: bool) -> void:
 			object.set(property_name, value)
+			outer_reference.emit_object_changed(object, property_name)
 			check.button_pressed = object.get(property_name)
 			check.tooltip_text = str(check.button_pressed)
 		)
@@ -212,6 +223,11 @@ class InspectorPropertyCheck extends InspectorProperty:
 
 ## Handle [int] or [float] property.
 class InspectorPropertySpin extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
 
@@ -230,6 +246,7 @@ class InspectorPropertySpin extends InspectorProperty:
 
 		spin.value_changed.connect(func(value: float) -> void:
 			object.set(property_name, value)
+			outer_reference.emit_object_changed(object, property_name)
 			spin.set_value_no_signal(object.get(property_name))
 			spin.set_tooltip_text(str(spin.value))
 		)
@@ -246,6 +263,11 @@ class InspectorPropertySpin extends InspectorProperty:
 
 ## Handle [String] or [StringName] property.
 class InspectorPropertyLine extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
 
@@ -260,6 +282,7 @@ class InspectorPropertyLine extends InspectorProperty:
 
 		line.text_changed.connect(func(value: String) -> void:
 			object.set(property_name, value)
+			outer_reference.emit_object_changed(object, property_name)
 
 			var caret := line.caret_column
 			line.text = object.get(property_name)
@@ -271,6 +294,11 @@ class InspectorPropertyLine extends InspectorProperty:
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
 class InspectorPropertyMultiline extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
 
@@ -305,6 +333,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		# TextEdit don't emit changed text.
 		var callable = func(edit: TextEdit) -> void:
 			object.set(property_name, edit.text)
+			outer_reference.emit_object_changed(object, property_name)
 
 			var column := text_edit.get_caret_column()
 			var line := text_edit.get_caret_line()
@@ -330,6 +359,11 @@ class InspectorPropertyMultiline extends InspectorProperty:
 
 ## Handle [Vector2] or [Vector2i] property.
 class InspectorPropertyVector2 extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
 
@@ -359,6 +393,8 @@ class InspectorPropertyVector2 extends InspectorProperty:
 
 		var callable = func(_value) -> void:
 			object.set(property_name, Vector2(x_spin.value, y_spin.value))
+			outer_reference.emit_object_changed(object, property_name)
+			
 			value = object.get(property_name)
 
 			x_spin.set_value_no_signal(value.x)
@@ -374,6 +410,11 @@ class InspectorPropertyVector2 extends InspectorProperty:
 
 ## Handle [Vector3] or [Vector3i] property.
 class InspectorPropertyVector3 extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
 
@@ -408,6 +449,8 @@ class InspectorPropertyVector3 extends InspectorProperty:
 
 		var callable = func(_value) -> void:
 			object.set(property_name, Vector3(x_spin.value, y_spin.value, z_spin.value))
+			outer_reference.emit_object_changed(object, property_name)
+			
 			value = object.get(property_name)
 
 			x_spin.set_value_no_signal(value.x)
@@ -427,6 +470,11 @@ class InspectorPropertyVector3 extends InspectorProperty:
 
 ## Handle [Color] property.
 class InspectorPropertyColor extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["type"] == TYPE_COLOR
 
@@ -442,6 +490,8 @@ class InspectorPropertyColor extends InspectorProperty:
 
 		picker.color_changed.connect(func(value: Color) -> void:
 			object.set(property_name, value)
+			outer_reference.emit_object_changed(object, property_name)
+			
 			picker.color = object.get(property_name)
 			picker.tooltip_text = str(picker.color)
 		)
@@ -450,6 +500,11 @@ class InspectorPropertyColor extends InspectorProperty:
 
 ## Handle [param enum] property.
 class InspectorPropertyEnum extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
 
@@ -476,6 +531,8 @@ class InspectorPropertyEnum extends InspectorProperty:
 
 		popup.id_pressed.connect(func(value: int) -> void:
 			object.set(property_name, value)
+			outer_reference.emit_object_changed(object, property_name)
+			
 			option_button.selected = popup.get_item_index(object.get(property_name))
 		)
 
@@ -483,6 +540,11 @@ class InspectorPropertyEnum extends InspectorProperty:
 
 ## Handle [int] property with [param @export_flags] annotation.
 class InspectorPropertyFlags extends InspectorProperty:
+	var outer_reference
+
+	func _init(outer):
+		outer_reference = outer
+		
 	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
 		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
 
@@ -503,8 +565,10 @@ class InspectorPropertyFlags extends InspectorProperty:
 			check.toggled.connect(func(pressed: bool) -> void:
 				if pressed:
 					object.set(property_name, object.get(property_name) | (1 << i))
+					outer_reference.emit_object_changed(object, property_name)
 				else:
 					object.set(property_name, object.get(property_name) & ~(1 << i))
+					outer_reference.emit_object_changed(object, property_name)
 
 				check.button_pressed = object.get(property_name) & 1 << i
 			)
