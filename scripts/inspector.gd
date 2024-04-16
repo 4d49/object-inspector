@@ -559,7 +559,7 @@ class InspectorPropertyGroup extends InspectorProperty:
 	
 	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
 		var button := Button.new()
-		button.text = "+ " + tr(property["name"]).capitalize()
+		button.text = "  + " + tr(property["name"]).capitalize()
 		button.toggle_mode = true
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -568,7 +568,7 @@ class InspectorPropertyGroup extends InspectorProperty:
 
 		## Search all children of the parent and show/hide them until next category or group
 		var callable = func(toggled: bool, button: Button) -> void:
-			button.text =  ("- " if toggled else "+ ") + tr(property["name"]).capitalize()
+			button.text =  ("  - " if toggled else "  + ") + tr(property["name"]).capitalize()
 			var objects = button.get_parent().get_children()
 			var self_index = objects.find(button)
 			for i in range(self_index + 1, objects.size()):
