@@ -32,7 +32,8 @@ var _search : LineEdit
 
 var _scroll_container : ScrollContainer
 var _container : VBoxContainer
-
+var _group_states: Dictionary
+var _subgroup_states: Dictionary
 
 func _init() -> void:
 	_search = LineEdit.new()
@@ -50,7 +51,10 @@ func _init() -> void:
 	_scroll_container.size_flags_horizontal = SIZE_EXPAND_FILL
 	_scroll_container.size_flags_vertical = SIZE_EXPAND_FILL
 	self.add_child(_scroll_container)
-
+	
+	_group_states = {}
+	_subgroup_states = {}
+	
 	_init_properties()
 
 ## Override for add([method add_inspector_property]) custom [Inspector.InspectorProperty].
@@ -97,8 +101,13 @@ func is_search_enabled() -> bool:
 func set_object(object: Object) -> void:
 	if is_same(_object, object):
 		return
-
+	
+	if _object:
+		_object.property_list_changed.disconnect(update_inspector)
 	_object = object
+	_group_states = {}
+	_subgroup_states = {}
+	_object.property_list_changed.connect(update_inspector)
 	object_changed.emit(object)
 
 	update_inspector()
@@ -134,6 +143,14 @@ func create_property_control(object: Object, property: Dictionary) -> Control:
 ## Update Inspector properties.
 func update_inspector(filter: String = _search.text) -> void:
 	if is_instance_valid(_container):
+		## Backup all group and subgroup states
+		for child in _container.get_children():
+			if child.is_in_group("inspector_group"):
+				var child_name = (child.text as String).strip_edges().right(-2)
+				_group_states[child_name] = child.button_pressed
+			elif child.is_in_group("inspector_subgroup"):
+				var child_name = (child.text as String).strip_edges().right(-2)
+				_subgroup_states[child_name] = child.button_pressed
 		_container.queue_free()
 
 	_search.editable = is_instance_valid(_object)
@@ -157,8 +174,20 @@ func update_inspector(filter: String = _search.text) -> void:
 	
 	# Collapse all groups and subgroups.
 	for child in _container.get_children():
-		if child.is_in_group("inspector_group") or child.is_in_group("inspector_subgroup"):
-			child.emit_signal("toggled", false)
+		if child.is_in_group("inspector_group"):
+			var child_name = (child.text as String).strip_edges().right(-2)
+			if _group_states.has(child_name):
+				child.emit_signal("toggled", _group_states[child_name])
+				child.button_pressed = _group_states[child_name]
+			else:
+				child.emit_signal("toggled", false)
+		elif child.is_in_group("inspector_subgroup"):
+			var child_name = (child.text as String).strip_edges().right(-2)
+			if _subgroup_states.has(child_name):
+				child.emit_signal("toggled", _subgroup_states[child_name])
+				child.button_pressed = _subgroup_states[child_name]
+			else:
+				child.emit_signal("toggled", false)
 
 	_scroll_container.add_child(_container)
 
