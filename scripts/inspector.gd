@@ -152,7 +152,7 @@ func update_inspector(filter: String = _search.text) -> void:
 				var property_control = create_property_control(_object, property)
 				if is_instance_valid(property_control):
 					_container.add_child(property_control)
-		if property["name"].ends_with(".gd"):
+		elif property["name"].ends_with(".gd"):
 			_start_populate = true
 	
 	# Collapse all groups and subgroups.
