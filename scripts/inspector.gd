@@ -571,16 +571,21 @@ class InspectorPropertyGroup extends InspectorProperty:
 			button.text =  ("  - " if toggled else "  + ") + tr(property["name"]).capitalize()
 			var objects = button.get_parent().get_children()
 			var self_index = objects.find(button)
+			var subgroup_found = false
 			var subgroup_state = false
 			for i in range(self_index + 1, objects.size()):
 				if objects[i].is_in_group("inspector_group") or objects[i].is_in_group("inspector_category"):
 					break
 				elif objects[i].is_in_group("inspector_subgroup"):
 					subgroup_state = objects[i].button_pressed
+					subgroup_found = true
 					objects[i].set_visible(toggled)
 				else:
 					if toggled:
-						objects[i].set_visible(subgroup_state)
+						if subgroup_found:
+							objects[i].set_visible(subgroup_state)
+						else:
+							objects[i].set_visible(toggled)
 					else:
 						objects[i].set_visible(false)
 
