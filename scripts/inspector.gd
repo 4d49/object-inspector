@@ -64,6 +64,9 @@ func _init_properties() -> void:
 	self.add_inspector_property(InspectorPropertyColor.new())
 	self.add_inspector_property(InspectorPropertyEnum.new())
 	self.add_inspector_property(InspectorPropertyFlags.new())
+	self.add_inspector_property(InspectorPropertyCategory.new())
+	self.add_inspector_property(InspectorPropertyGroup.new())
+	self.add_inspector_property(InspectorPropertySubGroup.new())
 
 ## Add a custom [Inspector.InspectorProperty].
 func add_inspector_property(property: InspectorProperty) -> void:
@@ -111,6 +114,10 @@ func clear() -> void:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
+	if (property["usage"] == PROPERTY_USAGE_CATEGORY or \
+		property["usage"] == PROPERTY_USAGE_GROUP or \
+		property["usage"] == PROPERTY_USAGE_SUBGROUP):
+		return true
 	if property["hint"] == PROPERTY_HINT_ENUM:
 		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
 
@@ -137,11 +144,21 @@ func update_inspector(filter: String = _search.text) -> void:
 	_container.size_flags_horizontal = SIZE_EXPAND_FILL
 	_container.size_flags_vertical = SIZE_EXPAND_FILL
 
+	# Do not start populating properties until we find the first script property.
+	var _start_populate = false
 	for property in _object.get_property_list():
-		if filter.is_subsequence_ofn(property["name"]) and is_valid_property(property):
-			var property_control = create_property_control(_object, property)
-			if is_instance_valid(property_control):
-				_container.add_child(property_control)
+		if _start_populate:
+			if filter.is_subsequence_ofn(property["name"]) and is_valid_property(property):
+				var property_control = create_property_control(_object, property)
+				if is_instance_valid(property_control):
+					_container.add_child(property_control)
+		elif property["name"].ends_with(".gd"):
+			_start_populate = true
+	
+	# Collapse all groups and subgroups.
+	for child in _container.get_children():
+		if child.is_in_group("inspector_group") or child.is_in_group("inspector_subgroup"):
+			child.emit_signal("toggled", false)
 
 	_scroll_container.add_child(_container)
 
@@ -512,3 +529,95 @@ class InspectorPropertyFlags extends InspectorProperty:
 			vbox.add_child(check)
 
 		return create_combo_container(property_name, vbox)
+
+## Handle [param @export_category] property.
+class InspectorPropertyCategory extends InspectorProperty:
+	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+		return property["usage"] == PROPERTY_USAGE_CATEGORY
+	
+	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
+		var button := Button.new()
+		button.text = tr(property["name"]).capitalize()
+		button.disabled = true
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.add_theme_color_override("font_disabled_color", Color(1.0, 1.0, 1.0, 1.0))
+		var button_settings := StyleBoxFlat.new()
+		button_settings.bg_color = Color(0.2, 0.2, 0.2, 0.5)
+		button_settings.corner_detail = 5
+		button_settings.set_corner_radius_all(10)
+		button.add_theme_stylebox_override("disabled", button_settings)
+
+		button.add_to_group("inspector_category")
+
+		return button
+
+## Handle [param @export_group] property.
+class InspectorPropertyGroup extends InspectorProperty:
+	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+		return property["usage"] == PROPERTY_USAGE_GROUP
+	
+	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
+		var button := Button.new()
+		button.text = "  + " + tr(property["name"]).capitalize()
+		button.toggle_mode = true
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+		button.add_to_group("inspector_group")
+
+		## Search all children of the parent and show/hide them until next category or group
+		var callable = func(toggled: bool, button: Button) -> void:
+			button.text =  ("  - " if toggled else "  + ") + tr(property["name"]).capitalize()
+			var objects = button.get_parent().get_children()
+			var self_index = objects.find(button)
+			var subgroup_found = false
+			var subgroup_state = false
+			for i in range(self_index + 1, objects.size()):
+				if objects[i].is_in_group("inspector_group") or objects[i].is_in_group("inspector_category"):
+					break
+				elif objects[i].is_in_group("inspector_subgroup"):
+					subgroup_state = objects[i].button_pressed
+					subgroup_found = true
+					objects[i].set_visible(toggled)
+				else:
+					if toggled:
+						if subgroup_found:
+							objects[i].set_visible(subgroup_state)
+						else:
+							objects[i].set_visible(toggled)
+					else:
+						objects[i].set_visible(false)
+
+		button.toggled.connect(callable.bind(button))
+
+		return button
+
+## Handle [param @export_subgroup] property.
+class InspectorPropertySubGroup extends InspectorProperty:
+	func can_handle(object: Object, property: Dictionary, readonly: bool) -> bool:
+		return property["usage"] == PROPERTY_USAGE_SUBGROUP
+	
+	func create_control(object: Object, property: Dictionary, readonly: bool) -> Control:
+		var button := Button.new()
+		button.text = "    + " + tr(property["name"]).capitalize()
+		button.toggle_mode = true
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+		button.add_to_group("inspector_subgroup")
+
+		## Search all children of the parent and show/hide them until next category, group or subgroup
+		var callable = func(toggled: bool, button: Button) -> void:
+			button.text =  ("    - " if toggled else "    + ") + tr(property["name"]).capitalize()
+			var objects = button.get_parent().get_children()
+			var self_index = objects.find(button)
+			for i in range(self_index + 1, objects.size()):
+				if objects[i].is_in_group("inspector_subgroup") or objects[i].is_in_group("inspector_group") or objects[i].is_in_group("inspector_category"):
+					break
+				else:
+					objects[i].set_visible(toggled)
+
+		button.toggled.connect(callable.bind(button))
+
+		return button
