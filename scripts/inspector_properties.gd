@@ -21,6 +21,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 		_title.set_name("Title")
 		_title.set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER)
 		_title.set_text(get_property().capitalize())
+		_title.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"header"))
 		_container.add_child(_title, false, Node.INTERNAL_MODE_FRONT)
 
 		self.add_child(_container)
