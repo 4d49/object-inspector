@@ -1,7 +1,7 @@
 # Object Inspector
-In-game object inspector for Godot 4.0.
+In-game property inspector for Godot 4.3+
 
-![](https://user-images.githubusercontent.com/8208165/165034315-66e7208b-ab82-433d-9b04-c9363e0bb205.png)
+![](https://github.com/4d49/object-inspector/assets/8208165/1e57adc5-9941-43dd-9aeb-50df146f00c4)
 
 # Support types:
 - Bool
@@ -13,15 +13,19 @@ In-game object inspector for Godot 4.0.
 - Vector3, Vector3i
 - Enum
 - Flags
+- Typed/Untyped Arrays and PackedArrays
+- Dictionary
+- Category, Group and Subgroup
 
 # Installation:
-1. Clone this repository to `addons` folder.
+1. `git clone` this repository to `addons` folder.
 2. Enabled `Object Inspector` in Plugins.
 3. Add `ObjectInspector` node to the scene.
-4. Profit.
+4. Apply the example theme to the `ObjectInspector` node.
+5. Done!
 
 # License
-Copyright (c) 2023 Mansur Isaev and contributors
+Copyright (c) 2022-2024 Mansur Isaev and contributors
 
 Unless otherwise specified, files in this repository are licensed under the
 MIT license. See [LICENSE.md](LICENSE.md) for more information.
