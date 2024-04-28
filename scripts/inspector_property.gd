@@ -107,7 +107,9 @@ func is_editable() -> bool:
 
 
 func set_value(new_value: Variant) -> void:
-	get_object().set(get_property(), new_value)
+	if get_object().get(get_property()) != new_value:
+		get_object().set(get_property(), new_value)
+		get_object().notify_property_list_changed()
 
 func get_value() -> Variant:
 	return get_object().get(get_property())
