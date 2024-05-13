@@ -158,6 +158,9 @@ func clear() -> void:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
+	const PROPERTY_USAGE = PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
+	const PROPERTY_USAGE_ENUM = PROPERTY_USAGE + PROPERTY_USAGE_CLASS_IS_ENUM
+
 	if property["usage"] == PROPERTY_USAGE_CATEGORY:
 		return is_category_enabled()
 
@@ -168,13 +171,14 @@ func is_valid_property(property: Dictionary) -> bool:
 		return is_subgroup_enabled()
 
 	elif property["hint"] == PROPERTY_HINT_ENUM:
-		return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_CLASS_IS_ENUM
+		return property["usage"] == PROPERTY_USAGE_ENUM or property["usage"] == PROPERTY_USAGE_ENUM + PROPERTY_USAGE_READ_ONLY
 
-	return property["usage"] == PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
+	return property["usage"] == PROPERTY_USAGE or property["usage"] == PROPERTY_USAGE + PROPERTY_USAGE_READ_ONLY
 
 ## Return [Control] for property.
 func create_property_control(object: Object, property: Dictionary) -> Control:
-	return InspectorProperty.create_property(object, property, not is_readonly())
+	var readonly: bool = is_readonly() or property["usage"] & PROPERTY_USAGE_READ_ONLY
+	return InspectorProperty.create_property(object, property, not readonly)
 
 ## Update Inspector properties.
 func update_inspector() -> void:
