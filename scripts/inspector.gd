@@ -105,8 +105,9 @@ func set_object(object: Object) -> void:
 		assert(error == OK, error_string(error))
 
 	_object = object
-	_group_states = {}
-	_subgroup_states = {}
+
+	_group_states.clear()
+	_subgroup_states.clear()
 
 	object_changed.emit(object)
 	_update_property_list()
