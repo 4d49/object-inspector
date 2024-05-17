@@ -14,7 +14,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 		self.set_theme_type_variation(&"InspectorPropertyCategory")
 
 		_container = VBoxContainer.new()
-		_container.set_name("PropertyContainer")
+		self.set_meta(&"property_container", _container)
 
 		_title = Label.new()
 		_title.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
@@ -42,9 +42,9 @@ class InspectorPropertyGroup extends InspectorProperty:
 		var vbox := VBoxContainer.new()
 
 		_container = VBoxContainer.new()
-		_container.set_name("PropertyContainer")
 		_container.hide() # By default group is collapsed.
 		vbox.add_child(_container)
+		self.set_meta(&"property_container", _container)
 
 		_button = Button.new()
 		_button.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)

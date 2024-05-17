@@ -208,14 +208,16 @@ func update_inspector() -> void:
 		# TODO: Do something. I really don't like all the code below...
 		if property["usage"] == PROPERTY_USAGE_SUBGROUP:
 			if is_instance_valid(group):
-				group.find_child("PropertyContainer", true, false).add_child(control)
+				parent = group.get_meta(&"property_container")
 			elif is_instance_valid(category):
-				category.find_child("PropertyContainer", true, false).add_child(control)
+				parent = category.get_meta(&"property_container")
 			else:
-				_container.add_child(control)
+				parent = _container
 
-			parent = control.find_child("PropertyContainer", true, false)
-			assert(is_instance_valid(parent), "Subgroup property does not have a `PropertyContainer` node!")
+			parent.add_child(control)
+
+			parent = control.get_meta(&"property_container")
+			assert(is_instance_valid(parent), "Subgroup property does not have `property_container` meta!")
 
 			subgroup = control
 			subgroup.call(&"set_toggled", _subgroup_states.get(property["name"], false))
@@ -226,12 +228,14 @@ func update_inspector() -> void:
 
 		elif property["usage"] == PROPERTY_USAGE_GROUP:
 			if is_instance_valid(category):
-				category.find_child("PropertyContainer", true, false).add_child(control)
+				parent = category.get_meta(&"property_container")
 			else:
-				_container.add_child(control)
+				parent = _container
 
-			parent = control.find_child("PropertyContainer", true, false)
-			assert(is_instance_valid(parent), "Group property does not have a `PropertyContainer` node!")
+			parent.add_child(control)
+
+			parent = control.get_meta(&"property_container")
+			assert(is_instance_valid(parent), "Group property does not have `property_container` meta!")
 
 			group = control
 			group.call(&"set_toggled", _group_states.get(property["name"], false))
@@ -243,8 +247,8 @@ func update_inspector() -> void:
 		elif property["usage"] == PROPERTY_USAGE_CATEGORY:
 			_container.add_child(control)
 
-			parent = control.find_child("PropertyContainer", true, false)
-			assert(is_instance_valid(parent), "Category property does not have a `PropertyContainer` node!")
+			parent = control.get_meta(&"property_container")
+			assert(is_instance_valid(parent), "Category property does not have `property_container` meta!")
 
 			category = control
 
