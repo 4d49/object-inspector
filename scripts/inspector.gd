@@ -264,10 +264,10 @@ func update_inspector() -> void:
 
 # Potentially should be replaced by on-the-fly computing...
 func _update_property_list() -> void:
-	if not is_instance_valid(_object):
-		return
-
-	_valid_properties = _object.get_property_list()
+	if is_instance_valid(_object):
+		_valid_properties = _object.get_property_list()
+	else:
+		_valid_properties = []
 
 	var counter: int = 0
 	# INFO: I know it's shitty code, but it works...
