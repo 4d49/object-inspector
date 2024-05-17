@@ -8,17 +8,24 @@ extends PanelContainer
 
 static var _declarations: Array[Dictionary] = []
 
-## Declares a supported type for properties.
-## [param Validation] must take two arguments [Object] and [Dictionary] and return [param true] if the property can be handled.
-## [codeblock] func can_handle(object: Object, property: Dictionary) -> bool:
-##     return property["type"] == TYPE_BOOL
+## Declares a supported type for properties. Declaration example:
+## [codeblock]
+## # Some script.gd...
+## static func _static_init() -> void:
+##   InspectorProperty.declare_property(can_handle, create_control)
 ## [/codeblock]
-## [br][param Constructor] must take two arguments [Object] and [Dictionary] and return [Control].
-## [codeblock] func create_control(object: Object, property: Dictionary) -> Control:
-##     var label := Label.new()
-##     label.set_text(property["name"])
+## [param Validation] must receive three arguments [Object], [Dictionary] and [bool]. And it must return [param true] if the property can be handled. Example:
+## [codeblock]static func can_handle(object: Object, property: Dictionary, editable: bool) -> bool:
+##    return property["type"] == TYPE_FLOAT
+## [/codeblock]
+## [br][param Constructor] must return a [Control] node. Example:
+## [codeblock]static func create_control(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> Control:
+##    var spin_box := SpinBox.new()
+##    spin_box.set_editable(editable)
+##    spin_box.set_value_no_signal(getter.call())
+##    spin_box.value_changed.connect(setter)
 ##
-##     return label
+##    return spin_box
 ## [/codeblock]
 static func declare_property(validation: Callable, constructor: Callable) -> void:
 	assert(validation.is_valid(), "Invalid validation Callable.")
@@ -27,8 +34,24 @@ static func declare_property(validation: Callable, constructor: Callable) -> voi
 	if validation.is_valid() and constructor.is_valid():
 		_declarations.push_front({"validation": validation, "constructor": constructor})
 
+
+static func default_setter(object: Object, property: StringName) -> Callable:
+	return func(value: Variant) -> void:
+		object.set(property, value)
+
+static func default_getter(object: Object, property: StringName) -> Variant:
+	return func() -> Variant:
+		return object.get(property)
+
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
-static func create_property(object: Object, property: Dictionary, editable: bool) -> Control:
+static func create_property(
+		object: Object,
+		property: Dictionary,
+		editable: bool,
+		setter: Callable = default_setter(object, property["name"]),
+		getter: Callable = default_getter(object, property["name"]),
+		) -> Control:
+
 	assert(is_instance_valid(object), "Invalid Object!")
 	if not is_instance_valid(object):
 		return null
@@ -42,7 +65,7 @@ static func create_property(object: Object, property: Dictionary, editable: bool
 		if not constructor.is_valid():
 			continue
 
-		var control: Control = constructor.call(object, property, editable)
+		var control: Control = constructor.call(object, property, editable, setter, getter)
 		if is_instance_valid(control):
 			control.set_name(property["name"])
 			return control
@@ -59,10 +82,13 @@ var _hint: PropertyHint = PROPERTY_HINT_NONE
 var _hint_string: String = ""
 var _usage: int = PROPERTY_USAGE_NONE
 
+var _setter: Callable
+var _getter: Callable
+
 var _editable: bool = true
 
 
-func _init(object: Object, property: Dictionary, editable: bool) -> void:
+func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
 	self.set_theme_type_variation(&"InspectorProperty")
 
 	_object = object
@@ -73,6 +99,9 @@ func _init(object: Object, property: Dictionary, editable: bool) -> void:
 	_hint = property["hint"]
 	_hint_string = property["hint_string"]
 	_usage = property["usage"]
+
+	_setter = setter
+	_getter = getter
 
 	_editable = editable
 
@@ -106,11 +135,18 @@ func is_editable() -> bool:
 	return _editable
 
 
+func get_setter() -> Callable:
+	return _setter
+
+func get_getter() -> Callable:
+	return _getter
+
+
 func set_value(new_value: Variant) -> void:
-	get_object().set(get_property(), new_value)
+	_setter.call(new_value)
 
 func get_value() -> Variant:
-	return get_object().get(get_property())
+	return _getter.call()
 
 func set_and_return_value(new_value: Variant) -> Variant:
 	set_value(new_value)
