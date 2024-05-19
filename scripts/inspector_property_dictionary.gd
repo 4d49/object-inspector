@@ -13,7 +13,8 @@ var _container: VBoxContainer = null
 var _dictionary_control: InspectorPropertyTypeDictionary = null
 
 
-func _enter_tree() -> void:
+func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
+	super(object, property, editable, setter, getter)
 	self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 	_container = VBoxContainer.new()
@@ -25,7 +26,7 @@ func _enter_tree() -> void:
 	var label := Label.new()
 	label.set_name("Label")
 	label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-	label.set_text(get_property().capitalize())
+	label.set_text(String(property["name"]).capitalize())
 	label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
 	label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 	label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
@@ -33,7 +34,7 @@ func _enter_tree() -> void:
 	label.set_stretch_ratio(0.75)
 	hbox.add_child(label)
 
-	_dictionary_control = create_dictionary_control(set_value, get_value, is_editable())
+	_dictionary_control = create_dictionary_control(set_value, get_value, editable)
 	_dictionary_control.set_name("Property")
 	_dictionary_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_dictionary_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
