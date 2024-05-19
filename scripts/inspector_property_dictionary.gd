@@ -239,102 +239,105 @@ class InspectorPropertyTypeDictionary extends Button:
 		update_paginator()
 
 	func _on_button_pressed(expanded: bool) -> void:
-		if not is_instance_valid(_vbox):
-			_vbox = VBoxContainer.new()
+		if not expanded:
+			if is_instance_valid(_vbox):
+				_vbox.queue_free()
 
-			var paginator_panel := PanelContainer.new()
-			paginator_panel.set_theme_type_variation(&"InspectorSubProperty")
-			_vbox.add_child(paginator_panel)
+			return
 
-			_paginator = Paginator.new(create_element)
-			_paginator.set_name("Paginator")
-			paginator_panel.add_child(_paginator)
+		_vbox = VBoxContainer.new()
 
-			var add_panel := PanelContainer.new()
-			add_panel.set_theme_type_variation(&"InspectorSubProperty")
-			_vbox.add_child(add_panel)
+		var paginator_panel := PanelContainer.new()
+		paginator_panel.set_theme_type_variation(&"InspectorSubProperty")
+		_vbox.add_child(paginator_panel)
 
-			var add_vbox := VBoxContainer.new()
-			add_panel.add_child(add_vbox)
+		_paginator = Paginator.new(create_element)
+		_paginator.set_name("Paginator")
+		paginator_panel.add_child(_paginator)
 
-			#region New Key
-			var key_hbox := HBoxContainer.new()
-			add_vbox.add_child(key_hbox)
+		var add_panel := PanelContainer.new()
+		add_panel.set_theme_type_variation(&"InspectorSubProperty")
+		_vbox.add_child(add_panel)
 
-			var key_vbox := VBoxContainer.new()
-			key_vbox.set_name("Container")
-			key_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			key_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			key_hbox.add_child(key_vbox)
+		var add_vbox := VBoxContainer.new()
+		add_panel.add_child(add_vbox)
 
-			_key_container = BoxContainer.new()
-			_key_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_key_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			key_vbox.add_child(_key_container)
+		#region New Key
+		var key_hbox := HBoxContainer.new()
+		add_vbox.add_child(key_hbox)
 
-			_key_label = Label.new()
-			_key_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-			_key_label.set_text("New Key:")
-			_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_key_container.add_child(_key_label)
+		var key_vbox := VBoxContainer.new()
+		key_vbox.set_name("Container")
+		key_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		key_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		key_hbox.add_child(key_vbox)
 
-			_key_control = Label.new()
-			_key_control.set_text(str(null))
-			_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_key_container.add_child(_key_control)
+		_key_container = BoxContainer.new()
+		_key_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_key_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		key_vbox.add_child(_key_container)
 
-			_key_edit = MenuButton.new()
-			_key_edit.set_flat(false)
-			_key_edit.set_button_icon(get_theme_icon(&"edit"))
-			init_type_popup(_key_edit.get_popup(), set_key_type)
-			key_hbox.add_child(_key_edit)
-			#endregion
+		_key_label = Label.new()
+		_key_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+		_key_label.set_text("New Key:")
+		_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_key_container.add_child(_key_label)
 
-			#region New Value
-			var value_hbox := HBoxContainer.new()
-			add_vbox.add_child(value_hbox)
+		_key_control = Label.new()
+		_key_control.set_text(str(null))
+		_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_key_container.add_child(_key_control)
 
-			var value_vbox := VBoxContainer.new()
-			value_vbox.set_name("Container")
-			value_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			value_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			value_hbox.add_child(value_vbox)
+		_key_edit = MenuButton.new()
+		_key_edit.set_flat(false)
+		_key_edit.set_button_icon(get_theme_icon(&"edit"))
+		init_type_popup(_key_edit.get_popup(), set_key_type)
+		key_hbox.add_child(_key_edit)
+		#endregion
 
-			_value_container = BoxContainer.new()
-			_value_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_value_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			value_vbox.add_child(_value_container)
+		#region New Value
+		var value_hbox := HBoxContainer.new()
+		add_vbox.add_child(value_hbox)
 
-			_value_label = Label.new()
-			_value_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-			_value_label.set_text("New Value:")
-			_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_value_container.add_child(_value_label)
+		var value_vbox := VBoxContainer.new()
+		value_vbox.set_name("Container")
+		value_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		value_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		value_hbox.add_child(value_vbox)
 
-			_value_control = Label.new()
-			_value_control.set_text(str(null))
-			_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_value_container.add_child(_value_control)
+		_value_container = BoxContainer.new()
+		_value_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_value_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		value_vbox.add_child(_value_container)
 
-			_value_edit = MenuButton.new()
-			_value_edit.set_flat(false)
-			_value_edit.set_name("KeyEdit")
-			_value_edit.set_button_icon(get_theme_icon(&"edit"))
-			init_type_popup(_value_edit.get_popup(), set_value_type)
-			value_hbox.add_child(_value_edit)
-			#endregion
+		_value_label = Label.new()
+		_value_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+		_value_label.set_text("New Value:")
+		_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_value_container.add_child(_value_label)
 
-			add_vbox.add_child(HSeparator.new())
+		_value_control = Label.new()
+		_value_control.set_text(str(null))
+		_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_value_container.add_child(_value_control)
 
-			_add_button = Button.new()
-			_add_button.set_text("Add Key/Value Pair")
-			_add_button.pressed.connect(_on_add_pressed)
-			add_vbox.add_child(_add_button, false, Node.INTERNAL_MODE_BACK)
+		_value_edit = MenuButton.new()
+		_value_edit.set_flat(false)
+		_value_edit.set_name("KeyEdit")
+		_value_edit.set_button_icon(get_theme_icon(&"edit"))
+		init_type_popup(_value_edit.get_popup(), set_value_type)
+		value_hbox.add_child(_value_edit)
+		#endregion
 
-			update_paginator()
-			find_parent("Container").add_child(_vbox)
+		add_vbox.add_child(HSeparator.new())
 
-		_vbox.set_visible(expanded)
+		_add_button = Button.new()
+		_add_button.set_text("Add Key/Value Pair")
+		_add_button.pressed.connect(_on_add_pressed)
+		add_vbox.add_child(_add_button, false, Node.INTERNAL_MODE_BACK)
+
+		update_paginator()
+		find_parent("Container").add_child(_vbox)
 
 	static func dictionary_to_text(dictionary: Dictionary) -> String:
 		return "Dictionary (size %d)" % dictionary.size()

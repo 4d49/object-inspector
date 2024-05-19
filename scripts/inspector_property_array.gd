@@ -242,52 +242,55 @@ class InspectorPropertyTypeArray extends Button:
 		return hbox
 
 	func _on_button_pressed(expanded: bool) -> void:
-		if not is_instance_valid(_panel):
-			_panel = PanelContainer.new()
-			_panel.set_theme_type_variation(&"InspectorSubProperty")
+		if not expanded:
+			if is_instance_valid(_panel):
+				_panel.queue_free()
 
-			_vbox = VBoxContainer.new()
-			_panel.add_child(_vbox)
+			return
 
-			var hbox := HBoxContainer.new()
-			hbox.set_name("SizeContainer")
-			_vbox.add_child(hbox, false, Node.INTERNAL_MODE_FRONT)
+		_panel = PanelContainer.new()
+		_panel.set_theme_type_variation(&"InspectorSubProperty")
 
-			var label := Label.new()
-			label.set_name("SizeLabel")
-			label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-			label.set_text("Size:")
-			label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
-			label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-			label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			label.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			label.set_stretch_ratio(0.75)
-			hbox.add_child(label)
+		_vbox = VBoxContainer.new()
+		_panel.add_child(_vbox)
 
-			_size_spin = SpinBox.new()
-			_size_spin.set_name("SizeSpinBox")
-			_size_spin.set_min(0)
-			_size_spin.set_max(INT32_MAX)
-			_size_spin.set_step(1)
-			_size_spin.set_use_rounded_values(true)
-			_size_spin.set_value_no_signal(_array.size())
-			_size_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-			_size_spin.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-			_size_spin.value_changed.connect(set_array_size)
-			hbox.add_child(_size_spin)
+		var hbox := HBoxContainer.new()
+		hbox.set_name("SizeContainer")
+		_vbox.add_child(hbox, false, Node.INTERNAL_MODE_FRONT)
 
-			_hseparator = HSeparator.new()
-			_hseparator.set_visible(_array.size())
-			_vbox.add_child(_hseparator)
+		var label := Label.new()
+		label.set_name("SizeLabel")
+		label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
+		label.set_text("Size:")
+		label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
+		label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+		label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		label.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		label.set_stretch_ratio(0.75)
+		hbox.add_child(label)
 
-			_paginator = Paginator.new(create_element)
-			_paginator.set_name("Paginator")
-			_vbox.add_child(_paginator)
+		_size_spin = SpinBox.new()
+		_size_spin.set_name("SizeSpinBox")
+		_size_spin.set_min(0)
+		_size_spin.set_max(INT32_MAX)
+		_size_spin.set_step(1)
+		_size_spin.set_use_rounded_values(true)
+		_size_spin.set_value_no_signal(_array.size())
+		_size_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+		_size_spin.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+		_size_spin.value_changed.connect(set_array_size)
+		hbox.add_child(_size_spin)
 
-			update_paginator()
-			find_parent("Container").add_child(_panel)
+		_hseparator = HSeparator.new()
+		_hseparator.set_visible(_array.size())
+		_vbox.add_child(_hseparator)
 
-		_panel.set_visible(expanded)
+		_paginator = Paginator.new(create_element)
+		_paginator.set_name("Paginator")
+		_vbox.add_child(_paginator)
+
+		update_paginator()
+		find_parent("Container").add_child(_panel)
 
 	static func array_to_string(array: Variant) -> String:
 		var array_name: String = " (size %d)" % array.size()
