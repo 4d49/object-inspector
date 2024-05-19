@@ -1,5 +1,6 @@
-[gd_resource type="Theme" load_steps=15 format=3 uid="uid://dyf67c0ud50ts"]
+[gd_resource type="Theme" load_steps=16 format=3 uid="uid://dyf67c0ud50ts"]
 
+[ext_resource type="Texture2D" uid="uid://behw48c2idpa1" path="res://addons/object-inspector/icons/file.svg" id="1_65vh4"]
 [ext_resource type="Texture2D" uid="uid://cr6jrnuywr8g4" path="res://addons/object-inspector/icons/maximize.svg" id="1_hfaeu"]
 [ext_resource type="Texture2D" uid="uid://cfw5fv6chuy5o" path="res://addons/object-inspector/icons/collapsed.svg" id="1_hpca1"]
 [ext_resource type="Texture2D" uid="uid://dec8bwwwl2po1" path="res://addons/object-inspector/icons/expanded.svg" id="2_0jwgf"]
@@ -57,6 +58,7 @@ BoxContainer/constants/separation = 2
 FlowContainer/constants/h_separation = 2
 FlowContainer/constants/v_separation = 2
 Inspector/base_type = &"VBoxContainer"
+Inspector/icons/file = ExtResource("1_65vh4")
 Inspector/icons/maximize = ExtResource("1_hfaeu")
 Inspector/icons/search = ExtResource("2_vebvf")
 InspectorProperty/base_type = &"PanelContainer"
