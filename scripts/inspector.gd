@@ -55,7 +55,7 @@ func _init() -> void:
 	load("res://addons/object-inspector/scripts/inspector_property_dictionary.gd")
 
 	_search = LineEdit.new()
-	_search.set_placeholder("Filter properties")
+	_search.set_placeholder("Filter Properties")
 	_search.set_editable(false)
 	_search.set_clear_button_enabled(true)
 	_search.set_visible(is_search_enabled())
