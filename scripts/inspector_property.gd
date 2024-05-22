@@ -68,6 +68,8 @@ static func create_property(
 		var control: Control = constructor.call(object, property, editable, setter, getter)
 		if is_instance_valid(control):
 			control.set_name(property["name"])
+			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
+
 			return control
 
 	return null

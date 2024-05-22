@@ -324,3 +324,53 @@ func _on_group_toggled(expanded: bool, property: String) -> void:
 
 func _on_subgroup_toggled(expanded: bool, property: String) -> void:
 	_subgroup_states[property] = expanded
+
+
+
+
+#region property description
+# Dictionary[[String: Dictionary[String: String]]
+static var _descriptions: Dictionary = {}
+
+## Adds a property description for the global name. Example:
+## [codeblock]# Some script.gd...
+## static func _static_init() -> void:
+##     Inspector.add_description("ClassName", "some_value", "Property description.")
+## [/codeblock]
+static func add_description(global_name: String, property: String, description: String) -> void:
+	_descriptions.get_or_add(global_name, {})[property] = description
+
+## Similar to [method add_description] but takes an object of the [Script] class as an argument instead of global_name.
+static func add_script_property_description(script: Script, property: String, description: String) -> void:
+	if is_instance_valid(script):
+		add_description(script.get_global_name(), property, description)
+
+## Similar to [method add_description] but takes an object of the [Object] class as an argument instead of global_name.
+static func add_object_description(object: Object, property: String, description: String) -> void:
+	if is_instance_valid(object):
+		add_script_property_description(object.get_script(), property, description)
+
+## Returns the property description for the global name.
+static func get_property_description(global_name: String, property: String) -> String:
+	const NULL: Dictionary = {}
+
+	return _descriptions.get(global_name, NULL).get(property, "")
+
+## Similar to [method add_description] but takes an object of the [Script] class as an argument instead of global_name.
+static func get_script_property_description(script: Script, property: String) -> String:
+	while script:
+		var desc: String = get_property_description(script.get_global_name(), property)
+		if desc:
+			return desc
+
+		script = script.get_base_script()
+
+	return ""
+
+## Similar to [method add_description] but takes an object of the [Object] class as an argument instead of global_name.
+static func get_object_property_description(object: Object, property: String) -> String:
+	if is_instance_valid(object) and property:
+		return get_script_property_description(object.get_script(), property)
+
+	return ""
+#endregion

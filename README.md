@@ -24,6 +24,13 @@ In-game property inspector for Godot 4.3+
 4. Apply the example theme to the `ObjectInspector` node.
 5. Done!
 
+### Custom property description:
+```gdscript
+# Some script.gd...
+static func _static_init() -> void:
+	Inspector.add_description("ClassName", "some_value", "Property description.")
+```
+
 # License
 Copyright (c) 2022-2024 Mansur Isaev and contributors
 
