@@ -39,7 +39,7 @@ static func default_setter(object: Object, property: StringName) -> Callable:
 	return func(value: Variant) -> void:
 		object.set(property, value)
 
-static func default_getter(object: Object, property: StringName) -> Variant:
+static func default_getter(object: Object, property: StringName) -> Callable:
 	return func() -> Variant:
 		return object.get(property)
 
