@@ -27,6 +27,20 @@ In-game property inspector for Godot 4.3+
 3. Call `set_object` method.
 4. Done!
 
+# Code example:
+```gdscript
+# Some script.gd...
+
+@onready var inspector: Inspector = $Inspector # Path to our inspector in a tree.
+
+func _ready() -> void:
+	# Some object that we get from some method.
+	var object: Object = get_object()
+
+	# Sets our object to our inspector.
+	inspector.set_object(object)
+```
+
 ## Custom property description:
 ```gdscript
 # Some script.gd...
