@@ -43,8 +43,8 @@ var _search : LineEdit = null
 var _scroll_container : ScrollContainer = null
 var _container : VBoxContainer = null
 
-var _group_states: Dictionary = {}
-var _subgroup_states: Dictionary = {}
+var _group_states: Dictionary[StringName, bool] = {}
+var _subgroup_states: Dictionary[StringName, bool] = {}
 
 
 func _init() -> void:
@@ -319,10 +319,10 @@ func _on_filter_text_chnaged(filter: String) -> void:
 			control.hide()
 
 
-func _on_group_toggled(expanded: bool, property: String) -> void:
+func _on_group_toggled(expanded: bool, property: StringName) -> void:
 	_group_states[property] = expanded
 
-func _on_subgroup_toggled(expanded: bool, property: String) -> void:
+func _on_subgroup_toggled(expanded: bool, property: StringName) -> void:
 	_subgroup_states[property] = expanded
 
 

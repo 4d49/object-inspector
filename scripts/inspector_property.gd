@@ -32,7 +32,11 @@ static func declare_property(validation: Callable, constructor: Callable) -> voi
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
 
 	if validation.is_valid() and constructor.is_valid():
-		_declarations.push_front({"validation": validation, "constructor": constructor})
+		var declaration: Dictionary[StringName, Callable] = {
+			&"validation": validation,
+			&"constructor": constructor,
+		}
+		_declarations.push_front(declaration)
 
 
 static func default_setter(object: Object, property: StringName) -> Callable:
@@ -56,12 +60,12 @@ static func create_property(
 	if not is_instance_valid(object):
 		return null
 
-	for decl: Dictionary in _declarations:
-		var validation: Callable = decl["validation"]
+	for declaration: Dictionary in _declarations:
+		var validation: Callable = declaration[&"validation"]
 		if not validation.is_valid() or not validation.call(object, property, editable):
 			continue
 
-		var constructor: Callable = decl["constructor"]
+		var constructor: Callable = declaration[&"constructor"]
 		if not constructor.is_valid():
 			continue
 
