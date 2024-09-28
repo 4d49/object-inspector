@@ -1,0 +1,244 @@
+[gd_scene load_steps=4 format=3 uid="uid://bm2diaagh617j"]
+
+[ext_resource type="Script" path="res://addons/object-inspector/scripts/inspector.gd" id="inspector_script"]
+[ext_resource type="Theme" uid="uid://dyf67c0ud50ts" path="res://addons/object-inspector/inspector_theme.tres" id="inspector_theme"]
+
+[sub_resource type="GDScript" id="example_script"]
+script/source = "# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
+# See `LICENSE.md` included in the source distribution for details.
+
+extends PanelContainer
+
+
+class ExampleObject extends RefCounted:
+	enum Type {
+		BOOL,
+		INT,
+		FLOAT,
+		STRING,
+		STRING_NAME,
+		COLOR,
+		VECTOR_2,
+		VECTOR_2I,
+		VECTOR_3,
+		VECTOR_3I,
+		MAX,
+	}
+
+	const ARRAY_MAX_SIZE = 10_000
+
+	@export_category(\"Simple Types\")
+
+	@export_group(\"Boolean\")
+	@export var boolean: bool = randi() % 2
+
+	@export_group(\"Integer\")
+	@export var integer: int = randi()
+	@export_range(0, 1000) var integer_range: int = randi_range(0, 1000)
+	@export_range(0, 1000, 10) var integer_range_step: int = snappedi(randi_range(0, 1000), 10)
+
+	@export_group(\"Float\")
+	@export var floating_point: float = randf_range(-100_000, 100_000)
+	@export_range(0.0, 100.0) var float_range: float = randf_range(0.0, 100.0)
+	@export_range(0.0, 1.0, 0.1) var float_range_step: float = snappedf(randf(), 0.1)
+
+	@export_group(\"String\")
+	@export var string: String = \"The quick brown fox jumps over the lazy dog\"
+	@export var string_name: StringName = \"%05X\" % randi_range(0, 1000)
+
+	@export_group(\"Color\")
+	@export var color: Color = Color(randf(), randf(), randf(), 0.5)
+	@export_color_no_alpha var color_no_alpha: Color = Color(randf(), randf(), randf())
+
+	@export_group(\"Vector2\")
+	@export var vector_2 := Vector2(randf(), randf())
+	@export var vector_2i := Vector2i(randi(), randi())
+
+	@export_group(\"Vector2\")
+	@export var vector_3 := Vector3(randf(), randf(), randf())
+	@export var vector_3i := Vector3i(randi(), randi(), randi())
+
+	@export_group(\"Enum\")
+	@export var enumeration: Type = randi_range(Type.BOOL, Type.MAX)
+
+	@export_group(\"Flags\")
+	@export_flags(\"One\", \"Two\", \"Three\", \"Four\", \"Five\") var flags := 0
+
+	@export_category(\"Arrays\")
+	@export_group(\"Untyped\")
+	@export var untyped: Array = random_array()
+
+	@export_group(\"Typed\")
+	@export var array_bool: Array[bool] = random_typed_array(Type.BOOL)
+	@export var array_int: Array[int] = random_typed_array(Type.INT)
+	@export var array_float: Array[float] = random_typed_array(Type.FLOAT)
+	@export var array_string: Array[String] = random_typed_array(Type.STRING)
+	@export var array_string_name: Array[StringName] = random_typed_array(Type.STRING_NAME)
+	@export var array_color: Array[Color] = random_typed_array(Type.COLOR)
+	@export var array_vector_2: Array[Vector2] = random_typed_array(Type.VECTOR_2)
+	@export var array_vector_2i: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
+	@export var array_vector_3: Array[Vector3] = random_typed_array(Type.VECTOR_3)
+	@export var array_vector_3i: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
+
+	@export_group(\"Packed Arrays\")
+	@export var packed_byte: PackedByteArray
+	@export var packed_int_32: PackedInt32Array = random_typed_array(Type.INT)
+	@export var packed_int_64: PackedInt64Array = random_typed_array(Type.INT)
+	@export var packed_float_32: PackedFloat32Array = random_typed_array(Type.FLOAT)
+	@export var packed_float_64: PackedFloat64Array = random_typed_array(Type.FLOAT)
+	@export var packed_string: PackedStringArray = random_typed_array(Type.STRING)
+	@export var packed_color: PackedColorArray = random_typed_array(Type.COLOR)
+	@export var packed_vector_2: PackedVector2Array = random_typed_array(Type.VECTOR_2)
+	@export var packed_vector_3: PackedVector3Array = random_typed_array(Type.VECTOR_3)
+
+	@export_category(\"Dictionary\")
+	@export var dictionary: Dictionary
+
+
+	static func to_builtin_type(type: Type) -> Variant.Type:
+		match type:
+			Type.BOOL:
+				return TYPE_BOOL
+			Type.INT:
+				return TYPE_INT
+			Type.FLOAT:
+				return TYPE_FLOAT
+			Type.STRING:
+				return TYPE_STRING
+			Type.STRING_NAME:
+				return TYPE_STRING_NAME
+			Type.COLOR:
+				return TYPE_COLOR
+			Type.VECTOR_2:
+				return TYPE_VECTOR2
+			Type.VECTOR_2I:
+				return TYPE_VECTOR2I
+			Type.VECTOR_3:
+				return TYPE_VECTOR3
+			Type.VECTOR_3I:
+				return TYPE_VECTOR3I
+
+		return TYPE_NIL
+
+	static func random_value(type: Type) -> Variant:
+		match type:
+			Type.BOOL:
+				return bool(randi() % 2)
+			Type.INT:
+				return randi()
+			Type.FLOAT:
+				return randf()
+			Type.STRING:
+				return \"string %d\" % randi()
+			Type.STRING_NAME:
+				return StringName(\"%05X\" % randi())
+			Type.COLOR:
+				return Color(randf(), randf(), randf())
+			Type.VECTOR_2:
+				return Vector2(randf(), randf())
+			Type.VECTOR_2I:
+				return Vector2i(randi(), randi())
+			Type.VECTOR_3:
+				return Vector3(randf(), randf(), randf())
+			Type.VECTOR_3I:
+				return Vector3i(randi(), randi(), randi())
+
+		return null
+
+	static func random_array() -> Array:
+		var array: Array = []
+		if array.resize(randi_range(0, ARRAY_MAX_SIZE)):
+			return array
+
+		for i: int in array.size():
+			array[i] = random_value(randi_range(Type.BOOL, Type.MAX - 1))
+
+		return array
+
+	static func random_typed_array(type: int) -> Array:
+		var array := Array([], to_builtin_type(type), &\"\", null)
+		if array.resize(randi_range(0, ARRAY_MAX_SIZE)):
+			return array
+
+		for i: int in array.size():
+			array[i] = random_value(type)
+
+		return array
+
+
+@onready var inspector: Inspector = $SplitContainer/PanelContainer/Inspector/Inspector
+
+
+func _on_open_pressed() -> void:
+	var object := ExampleObject.new()
+	inspector.set_object(object)
+
+
+func _on_close_pressed() -> void:
+	inspector.set_object(null)
+
+
+func _on_update_pressed() -> void:
+	inspector.update_inspector()
+"
+
+[node name="Example" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("example_script")
+
+[node name="SplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 2
+
+[node name="PanelContainer" type="TabContainer" parent="SplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.3
+current_tab = 0
+
+[node name="Inspector" type="VSplitContainer" parent="SplitContainer/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+metadata/_tab_index = 0
+
+[node name="Inspector" type="VBoxContainer" parent="SplitContainer/PanelContainer/Inspector"]
+layout_mode = 2
+size_flags_vertical = 3
+theme = ExtResource("inspector_theme")
+theme_type_variation = &"Inspector"
+script = ExtResource("inspector_script")
+
+[node name="Buttons" type="HBoxContainer" parent="SplitContainer/PanelContainer/Inspector"]
+layout_mode = 2
+
+[node name="Open" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Open"
+
+[node name="Close" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Close"
+
+[node name="Separator" type="VSeparator" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+
+[node name="Update" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Update"
+
+[node name="Placeholder" type="Label" parent="SplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 6
+text = "PLACEHOLDER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Open" to="." method="_on_open_pressed"]
+[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Close" to="." method="_on_close_pressed"]
+[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Update" to="." method="_on_update_pressed"]
