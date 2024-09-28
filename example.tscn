@@ -10,10 +10,6 @@ script/source = "# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT L
 extends PanelContainer
 
 
-const INT_MIN = -64*1024
-const INT_MAX =  64*1024
-
-
 class ExampleObject extends RefCounted:
 	enum Type {
 		BOOL,
@@ -42,7 +38,7 @@ class ExampleObject extends RefCounted:
 	@export_range(0, 1000, 10) var integer_range_step: int = snappedi(randi_range(0, 1000), 10)
 
 	@export_group(\"Float\")
-	@export var floating_point: float = randf_range(INT_MIN, INT_MAX)
+	@export var floating_point: float = randf_range(-100_000, 100_000)
 	@export_range(0.0, 100.0) var float_range: float = randf_range(0.0, 100.0)
 	@export_range(0.0, 1.0, 0.1) var float_range_step: float = snappedf(randf(), 0.1)
 
