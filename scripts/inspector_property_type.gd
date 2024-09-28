@@ -4,14 +4,19 @@
 class_name InspectorPropertyType
 
 
-static var _declarations: Dictionary = {}
+static var _declarations: Dictionary[Variant.Type, Dictionary] = {}
 
 
 static func register_type(type: Variant.Type, name: StringName, constructor: Callable) -> void:
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
 
 	if constructor.is_valid():
-		_declarations[type] = {"type": type, "name": name, "constructor": constructor}
+		var declaration: Dictionary[StringName, Variant] = {
+			&"type": type,
+			&"name": name,
+			&"constructor": constructor
+		}
+		_declarations[type] = declaration
 
 static func unregister_type(type: Variant.Type) -> bool:
 	return _declarations.erase(type)
@@ -21,8 +26,12 @@ static func get_type_list() -> Array[Dictionary]:
 	var type_list: Array[Dictionary] = []
 
 	for type: Variant.Type in _declarations:
-		type_list.push_back({"type": type, "name": _declarations[type]["name"]})
-
+		var declaration: Dictionary[StringName, Variant] = {
+			&"type": type,
+			&"name": _declarations[type][&"name"],
+		}
+		type_list.push_back(declaration)
+	
 	return type_list
 
 
@@ -37,11 +46,11 @@ static func create_control(type: Variant.Type, setter: Callable, getter: Callabl
 	elif type == TYPE_NIL:
 		type = typeof(value)
 
-	var decl: Dictionary = _declarations.get(type, {})
-	if decl.is_empty():
+	var declaration: Dictionary = _declarations.get(type, {})
+	if declaration.is_empty():
 		return null
 
-	var constructor: Callable = decl["constructor"]
+	var constructor: Callable = declaration[&"constructor"]
 	if not constructor.is_valid():
 		return null
 
