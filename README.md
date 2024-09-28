@@ -1,5 +1,5 @@
 # Object Inspector
-In-game property inspector for Godot 4.3+
+In-game property inspector for Godot 4.4+
 
 ![](https://github.com/4d49/object-inspector/assets/8208165/1e57adc5-9941-43dd-9aeb-50df146f00c4)
 
