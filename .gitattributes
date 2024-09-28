@@ -5,3 +5,5 @@
 /.gitignore export-ignore
 /LICENSE.md export-ignore
 /README.md export-ignore
+
+/example.tscn export-ignore
