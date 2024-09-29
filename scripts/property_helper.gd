@@ -5,6 +5,9 @@ class_name PropertyHelper
 extends RefCounted
 
 
+signal property_changed(property: StringName, value: Variant)
+
+
 var _setter_map: Dictionary[StringName, Callable] = {}
 var _getter_map: Dictionary[StringName, Callable] = {}
 
@@ -13,10 +16,16 @@ var _property_list: Array[Dictionary] = []
 
 func _set(property: StringName, value: Variant) -> bool:
 	var setter: Callable = _setter_map.get(property, Callable())
-	return setter.is_valid() and setter.call(value) != false
+
+	if setter.is_valid() and setter.call(value) != false:
+		property_changed.emit(property, get(property))
+		return true
+
+	return false
 
 func _get(property: StringName) -> Variant:
 	var getter: Callable = _getter_map.get(property, Callable())
+
 	if getter.is_valid():
 		return getter.call()
 
