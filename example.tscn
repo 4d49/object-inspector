@@ -241,6 +241,7 @@ func _on_helper_pressed() -> void:
 		PROPERTY_HINT_COLOR_NO_ALPHA
 	)
 
+	property_helper.property_changed.connect(prints)
 	inspector.set_object(property_helper)
 "
 
