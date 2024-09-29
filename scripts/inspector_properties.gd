@@ -103,6 +103,7 @@ class InspectorPropertyBool extends InspectorProperty:
 		var check_box := CheckBox.new()
 		check_box.set_disabled(not editable)
 		check_box.set_text("On")
+		check_box.set_flat(true)
 		check_box.set_pressed_no_signal(getter.call())
 
 		check_box.toggled.connect(func(value: bool) -> void:
