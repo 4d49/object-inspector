@@ -180,6 +180,69 @@ func _on_close_pressed() -> void:
 
 func _on_update_pressed() -> void:
 	inspector.update_inspector()
+
+
+func _on_helper_pressed() -> void:
+	var data: Dictionary[StringName, Variant] = {
+		&\"name\": \"Name %d\" % randi(),
+		&\"description\": \"Description %d\" % randi(),
+		&\"price\": randi_range(0, 9999),
+		&\"rating\": snappedf(randf_range(0.0, 5.0), 0.01),
+		&\"color\": Color(randf(), randf(), randf())
+	}
+
+	var property_helper := PropertyHelper.new()
+	property_helper.add_category(\"PropertyHelper\")
+
+	property_helper.add_property(
+		\"name\",
+		TYPE_STRING,
+		func set_name(name: String) -> void:
+			data.name = name,
+		func get_name() -> String:
+			return data.name
+	)
+	property_helper.add_property(
+		\"description\",
+		TYPE_STRING,
+		func set_description(description: String) -> void:
+			data.description = description,
+		func get_description() -> String:
+			return data.description,
+		PROPERTY_HINT_MULTILINE_TEXT
+	)
+	property_helper.add_property(
+		\"price\",
+		TYPE_INT,
+		func set_price(value: int) -> void:
+			data.price = value,
+		func get_price() -> int:
+			return data.price,
+		PROPERTY_HINT_RANGE,
+		PropertyHelper.range_to_hint_string(0, 9999, 1)
+	)
+	property_helper.add_property(
+		\"rating\",
+		TYPE_FLOAT,
+		func set_rating(rating: float) -> void:
+			data.rating = rating,
+		func get_rating() -> float:
+			return data.rating,
+		PROPERTY_HINT_RANGE,
+		PropertyHelper.range_to_hint_string(0, 5, 0.01)
+	)
+	property_helper.add_property(
+		\"color\",
+		TYPE_COLOR,
+		func set_color(color: Color) -> void:
+			data.color = Color(color, 1.0),
+		func get_color() -> Color:
+			return data.color,
+		PROPERTY_HINT_COLOR_NO_ALPHA
+	)
+
+	property_helper.property_changed.connect(prints)
+	inspector.set_object(property_helper)
 "
 
 [node name="Example" type="PanelContainer"]
@@ -219,18 +282,23 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Open"
 
-[node name="Close" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+[node name="Helper" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Close"
-
-[node name="Separator" type="VSeparator" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
-layout_mode = 2
+text = "Helper"
 
 [node name="Update" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Update"
+
+[node name="Separator" type="VSeparator" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+
+[node name="Close" type="Button" parent="SplitContainer/PanelContainer/Inspector/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Close"
 
 [node name="Placeholder" type="Label" parent="SplitContainer"]
 layout_mode = 2
@@ -240,5 +308,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Open" to="." method="_on_open_pressed"]
-[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Close" to="." method="_on_close_pressed"]
+[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Helper" to="." method="_on_helper_pressed"]
 [connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Update" to="." method="_on_update_pressed"]
+[connection signal="pressed" from="SplitContainer/PanelContainer/Inspector/Buttons/Close" to="." method="_on_close_pressed"]
