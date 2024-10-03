@@ -357,7 +357,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 			window = AcceptDialog.new()
 			window.set_name("EditTextDialog")
 			window.set_title("Text edit")
-			window.set_min_size(Vector2(640, 480))
+			window.set_min_size(Vector2(375, 225))
 			window.add_cancel_button("Cancel")
 			window.set_ok_button_text("Save")
 			window.confirmed.connect(_on_window_confirmed)
@@ -371,7 +371,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 			self.add_child(window)
 
 		window_text_edit.set_text(get_value())
-		window.popup_centered_clamped(Vector2(640, 480))
+		window.popup_centered_clamped(Vector2(500, 300))
 
 	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
 		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
