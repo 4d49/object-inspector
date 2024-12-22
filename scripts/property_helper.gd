@@ -89,18 +89,18 @@ func add_property(
 
 ## Returns [Callable] to set the value of the object property.
 static func object_setter(object: Object, property: StringName) -> Callable:
-	if is_instance_valid(object):
-		return func setter(value: Variant) -> void:
-			object.set(property, value)
-	else:
+	if not is_instance_valid(object):
 		return Callable()
+
+	return func setter(value: Variant) -> void:
+		object.set(property, value)
 ## Returns [Callable] to get the value of the object property.
 static func object_getter(object: Object, property: StringName) -> Callable:
-	if is_instance_valid(object):
-		return func getter() -> Variant:
-			return object.get(property)
-	else:
+	if not is_instance_valid(object):
 		return Callable()
+
+	return func getter() -> Variant:
+		return object.get(property)
 
 ## Returns [Callable] to set the array value.
 static func array_setter(array: Array, index: int) -> Callable:
