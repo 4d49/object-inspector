@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bm2diaagh617j"]
 
-[ext_resource type="Script" path="res://addons/object-inspector/scripts/inspector.gd" id="inspector_script"]
-[ext_resource type="Theme" uid="uid://dyf67c0ud50ts" path="res://addons/object-inspector/inspector_theme.tres" id="inspector_theme"]
+[ext_resource type="Theme" uid="uid://brgv3slrtq5v1" path="res://addons/object-inspector/inspector_theme.tres" id="1_l7vgg"]
+[ext_resource type="Script" uid="uid://bqyqbwhc5tmoa" path="res://addons/object-inspector/scripts/inspector.gd" id="2_fnmlx"]
 
 [sub_resource type="GDScript" id="example_script"]
 script/source = "# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
@@ -175,7 +175,7 @@ func _on_open_pressed() -> void:
 
 
 func _on_close_pressed() -> void:
-	inspector.set_object(null)
+	inspector.clear()
 
 
 func _on_update_pressed() -> void:
@@ -197,48 +197,38 @@ func _on_helper_pressed() -> void:
 	property_helper.add_property(
 		\"name\",
 		TYPE_STRING,
-		func set_name(name: String) -> void:
-			data.name = name,
-		func get_name() -> String:
-			return data.name
+		PropertyHelper.dictionary_setter(data, &\"name\"),
+		PropertyHelper.dictionary_getter(data, &\"name\"),
 	)
 	property_helper.add_property(
 		\"description\",
 		TYPE_STRING,
-		func set_description(description: String) -> void:
-			data.description = description,
-		func get_description() -> String:
-			return data.description,
-		PROPERTY_HINT_MULTILINE_TEXT
+		PropertyHelper.dictionary_setter(data, &\"description\"),
+		PropertyHelper.dictionary_getter(data, &\"description\"),
+		PROPERTY_HINT_MULTILINE_TEXT,
 	)
 	property_helper.add_property(
 		\"price\",
 		TYPE_INT,
-		func set_price(value: int) -> void:
-			data.price = value,
-		func get_price() -> int:
-			return data.price,
+		PropertyHelper.dictionary_setter(data, &\"price\"),
+		PropertyHelper.dictionary_getter(data, &\"price\"),
 		PROPERTY_HINT_RANGE,
-		PropertyHelper.range_to_hint_string(0, 9999, 1)
+		PropertyHelper.range_to_hint_string(0, 9999, 1),
 	)
 	property_helper.add_property(
 		\"rating\",
 		TYPE_FLOAT,
-		func set_rating(rating: float) -> void:
-			data.rating = rating,
-		func get_rating() -> float:
-			return data.rating,
+		PropertyHelper.dictionary_setter(data, &\"rating\"),
+		PropertyHelper.dictionary_getter(data, &\"rating\"),
 		PROPERTY_HINT_RANGE,
-		PropertyHelper.range_to_hint_string(0, 5, 0.01)
+		PropertyHelper.range_to_hint_string(0, 5, 0.01),
 	)
 	property_helper.add_property(
 		\"color\",
 		TYPE_COLOR,
-		func set_color(color: Color) -> void:
-			data.color = Color(color, 1.0),
-		func get_color() -> Color:
-			return data.color,
-		PROPERTY_HINT_COLOR_NO_ALPHA
+		PropertyHelper.dictionary_setter(data, &\"color\"),
+		PropertyHelper.dictionary_getter(data, &\"color\"),
+		PROPERTY_HINT_COLOR_NO_ALPHA,
 	)
 
 	property_helper.property_changed.connect(prints)
@@ -270,9 +260,9 @@ metadata/_tab_index = 0
 [node name="Inspector" type="VBoxContainer" parent="SplitContainer/PanelContainer/Inspector"]
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("inspector_theme")
+theme = ExtResource("1_l7vgg")
 theme_type_variation = &"Inspector"
-script = ExtResource("inspector_script")
+script = ExtResource("2_fnmlx")
 
 [node name="Buttons" type="HBoxContainer" parent="SplitContainer/PanelContainer/Inspector"]
 layout_mode = 2

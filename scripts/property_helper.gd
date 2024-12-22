@@ -87,6 +87,45 @@ func add_property(
 
 	return true
 
+## Returns [Callable] to set the value of the object property.
+static func object_setter(object: Object, property: StringName) -> Callable:
+	if not is_instance_valid(object):
+		return Callable()
+
+	return func setter(value: Variant) -> void:
+		object.set(property, value)
+## Returns [Callable] to get the value of the object property.
+static func object_getter(object: Object, property: StringName) -> Callable:
+	if not is_instance_valid(object):
+		return Callable()
+
+	return func getter() -> Variant:
+		return object.get(property)
+
+## Returns [Callable] to set the array value.
+static func array_setter(array: Array, index: int) -> Callable:
+	if array.is_read_only():
+		return Callable()
+
+	return func setter(value: Variant) -> void:
+		array[index] = value
+## Returns [Callable] to get the array value.
+static func array_getter(array: Array, index: int) -> Callable:
+	return func getter() -> Variant:
+		return array[index]
+
+## Returns [Callable] to set the dictionary value.
+static func dictionary_setter(dictionary: Dictionary, key: Variant) -> Callable:
+	if dictionary.is_read_only():
+		return Callable()
+
+	return func setter(value: Variant) -> void:
+		dictionary[key] = value
+## Returns [Callable] to get the dictionary value.
+static func dictionary_getter(dictionary: Dictionary, key: Variant) -> Callable:
+	return func getter() -> Variant:
+		return dictionary[key]
+
 
 static func range_to_hint_string(min: float, max: float, step: float) -> String:
 	return String.num(min) + "," + String.num(max) + "," + String.num(step)
