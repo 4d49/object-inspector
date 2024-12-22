@@ -104,6 +104,9 @@ static func object_getter(object: Object, property: StringName) -> Callable:
 
 ## Returns [Callable] to set the array value.
 static func array_setter(array: Array, index: int) -> Callable:
+	if array.is_read_only():
+		return Callable()
+
 	return func setter(value: Variant) -> void:
 		array[index] = value
 ## Returns [Callable] to get the array value.
@@ -113,6 +116,9 @@ static func array_getter(array: Array, index: int) -> Callable:
 
 ## Returns [Callable] to set the dictionary value.
 static func dictionary_setter(dictionary: Dictionary, key: Variant) -> Callable:
+	if dictionary.is_read_only():
+		return Callable()
+
 	return func setter(value: Variant) -> void:
 		dictionary[key] = value
 ## Returns [Callable] to get the dictionary value.
