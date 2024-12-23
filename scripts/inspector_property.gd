@@ -38,22 +38,12 @@ static func declare_property(validation: Callable, constructor: Callable) -> voi
 		}
 		_declarations.push_front(declaration)
 
-
-static func default_setter(object: Object, property: StringName) -> Callable:
-	return func(value: Variant) -> void:
-		object.set(property, value)
-
-static func default_getter(object: Object, property: StringName) -> Callable:
-	return func() -> Variant:
-		return object.get(property)
-
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
 static func create_property(
 		object: Object,
 		property: Dictionary,
-		editable: bool,
-		setter: Callable = default_setter(object, property["name"]),
-		getter: Callable = default_getter(object, property["name"]),
+		setter: Callable,
+		getter: Callable,
 		) -> Control:
 
 	assert(is_instance_valid(object), "Invalid Object!")
