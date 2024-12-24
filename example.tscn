@@ -102,47 +102,51 @@ class ExampleObject extends RefCounted:
 	var untyped_readonly: Array = random_array()
 
 	@export_group(\"Typed\")
+	@export_subgroup(\"Editable\")
 	@export var array_bool: Array[bool] = random_typed_array(Type.BOOL)
+	@export var array_int: Array[int] = random_typed_array(Type.INT)
+	@export var array_float: Array[float] = random_typed_array(Type.FLOAT)
+	@export var array_string: Array[String] = random_typed_array(Type.STRING)
+	@export var array_string_name: Array[StringName] = random_typed_array(Type.STRING_NAME)
+	@export var array_color: Array[Color] = random_typed_array(Type.COLOR)
+	@export var array_vector_2: Array[Vector2] = random_typed_array(Type.VECTOR_2)
+	@export var array_vector_2i: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
+	@export var array_vector_3: Array[Vector3] = random_typed_array(Type.VECTOR_3)
+	@export var array_vector_3i: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
+
+	@export_subgroup(\"Read-only\")
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_bool_readonly: Array[bool] = random_typed_array(Type.BOOL)
 
-	@export var array_int: Array[int] = random_typed_array(Type.INT)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_int_readonly: Array[int] = random_typed_array(Type.INT)
 
-	@export var array_float: Array[float] = random_typed_array(Type.FLOAT)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_float_readonly: Array[float] = random_typed_array(Type.FLOAT)
 
-	@export var array_string: Array[String] = random_typed_array(Type.STRING)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_string_readonly: Array[String] = random_typed_array(Type.STRING)
 
-	@export var array_string_name: Array[StringName] = random_typed_array(Type.STRING_NAME)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_string_name_readonly: Array[StringName] = random_typed_array(Type.STRING_NAME)
 
-	@export var array_color: Array[Color] = random_typed_array(Type.COLOR)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_color_readonly: Array[Color] = random_typed_array(Type.COLOR)
 
-	@export var array_vector_2: Array[Vector2] = random_typed_array(Type.VECTOR_2)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_2_readonly: Array[Vector2] = random_typed_array(Type.VECTOR_2)
 
-	@export var array_vector_2i: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_2i_readonly: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
 
-	@export var array_vector_3: Array[Vector3] = random_typed_array(Type.VECTOR_3)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_3_readonly: Array[Vector3] = random_typed_array(Type.VECTOR_3)
 
-	@export var array_vector_3i: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_3i_readonly: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
 
 	@export_group(\"Packed Arrays\")
+	@export_subgroup(\"Editable\")
 	@export var packed_byte: PackedByteArray
 	@export var packed_int_32: PackedInt32Array = random_typed_array(Type.INT)
 	@export var packed_int_64: PackedInt64Array = random_typed_array(Type.INT)
@@ -152,6 +156,34 @@ class ExampleObject extends RefCounted:
 	@export var packed_color: PackedColorArray = random_typed_array(Type.COLOR)
 	@export var packed_vector_2: PackedVector2Array = random_typed_array(Type.VECTOR_2)
 	@export var packed_vector_3: PackedVector3Array = random_typed_array(Type.VECTOR_3)
+
+	@export_subgroup(\"Read-only\")
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_byte_readonly: PackedByteArray
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_int_32_readonly: PackedInt32Array = random_typed_array(Type.INT, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_int_64_readonly: PackedInt64Array = random_typed_array(Type.INT, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_float_32_readonly: PackedFloat32Array = random_typed_array(Type.FLOAT, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_float_64_readonly: PackedFloat64Array = random_typed_array(Type.FLOAT, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_string_readonly: PackedStringArray = random_typed_array(Type.STRING, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_color_readonly: PackedColorArray = random_typed_array(Type.COLOR, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_vector_2_readonly: PackedVector2Array = random_typed_array(Type.VECTOR_2, true)
+
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
+	var packed_vector_3_readonly: PackedVector3Array = random_typed_array(Type.VECTOR_3, true)
 
 	@export_category(\"Dictionary\")
 	@export var dictionary: Dictionary
