@@ -39,7 +39,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	label.set_stretch_ratio(0.75)
 	header.add_child(label)
 
-	_array_control = create_array_control(set_value, get_value)
+	_array_control = create_array_control(setter, getter)
 	_array_control.set_name("Property")
 	_array_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_array_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)

@@ -34,7 +34,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	label.set_stretch_ratio(0.75)
 	hbox.add_child(label)
 
-	_dictionary_control = create_dictionary_control(set_value, get_value)
+	_dictionary_control = create_dictionary_control(setter, getter)
 	_dictionary_control.set_name("Property")
 	_dictionary_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_dictionary_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
