@@ -17,8 +17,8 @@ var _container: VBoxContainer = null
 var _array_control: InspectorPropertyTypeArray = null
 
 
-func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-	super(object, property, editable, setter, getter)
+func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+	super(object, property, setter, getter)
 	self.set_theme_type_variation(&"InspectorPropertyArray")
 
 	_container = VBoxContainer.new()
@@ -39,7 +39,7 @@ func _init(object: Object, property: Dictionary, editable: bool, setter: Callabl
 	label.set_stretch_ratio(0.75)
 	header.add_child(label)
 
-	_array_control = create_array_control(set_value, get_value, editable)
+	_array_control = create_array_control(set_value, get_value)
 	_array_control.set_name("Property")
 	_array_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_array_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -51,7 +51,7 @@ func _init(object: Object, property: Dictionary, editable: bool, setter: Callabl
 static func is_valid_type(type: Variant.Type) -> bool:
 	return InspectorPropertyType.is_valid_type(type)
 
-static func can_handle(object: Object, property: Dictionary, _editable: bool) -> bool:
+static func can_handle(object: Object, property: Dictionary) -> bool:
 	if property["type"] == TYPE_ARRAY:
 		var array: Array = object.get(property["name"])
 		var array_type := array.get_typed_builtin()
@@ -91,8 +91,6 @@ class InspectorPropertyTypeArray extends Button:
 	var _array: Variant = null
 	var _array_type: Variant.Type = TYPE_NIL
 
-	var _editable: bool = false
-
 	var _panel: PanelContainer = null
 	var _vbox: VBoxContainer = null
 
@@ -100,13 +98,11 @@ class InspectorPropertyTypeArray extends Button:
 	var _size_spin: SpinBox = null
 	var _paginator: Paginator = null
 
-	func _init(array: Variant, editable: bool) -> void:
+	func _init(array: Variant) -> void:
 		self.set_theme_type_variation(&"InspectorPropertyArray")
 
 		_array = array
 		_array_type = get_array_type(array)
-
-		_editable = editable
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(array_to_string(array))
@@ -214,7 +210,7 @@ class InspectorPropertyTypeArray extends Button:
 		var getter: Callable = func() -> Variant:
 			return _array[index]
 
-		var control: Control = create_control(value_type, setter, getter, _editable)
+		var control: Control = create_control(value_type, setter, getter)
 		if not is_instance_valid(control):
 			return null
 
@@ -322,18 +318,18 @@ class InspectorPropertyTypeArray extends Button:
 
 		return TYPE_NIL
 
-	static func create_control(type: Variant.Type, setter: Callable, getter: Callable, editable: bool) -> Control:
+	static func create_control(type: Variant.Type, setter: Callable, getter: Callable) -> Control:
 		if type == TYPE_NIL:
 			var label := Label.new()
 			label.set_text(str(null))
 
 			return label
 
-		return InspectorPropertyType.create_control(type, setter, getter, editable)
+		return InspectorPropertyType.create_control(type, setter, getter)
 
 
-static func create_array_control(_setter: Callable, getter: Callable, editable: bool) -> InspectorPropertyTypeArray:
+static func create_array_control(_setter: Callable, getter: Callable) -> InspectorPropertyTypeArray:
 	var array: Variant = getter.call()
-	var array_control := InspectorPropertyTypeArray.new(array, editable)
+	var array_control := InspectorPropertyTypeArray.new(array)
 
 	return array_control

@@ -10,8 +10,8 @@ class InspectorPropertyCategory extends InspectorProperty:
 	var _container: VBoxContainer = null
 	var _title: Label = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 		self.set_theme_type_variation(&"InspectorPropertyCategory")
 
 		_container = VBoxContainer.new()
@@ -29,7 +29,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 	func _enter_tree() -> void:
 		_title.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"header"))
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_CATEGORY
 
 ## Handle [annotation @GDScript.@export_group] property.
@@ -39,8 +39,8 @@ class InspectorPropertyGroup extends InspectorProperty:
 	var _container: VBoxContainer = null
 	var _button: Button = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 		self.set_theme_type_variation(&"InspectorPropertyGroup")
 
 		var vbox := VBoxContainer.new()
@@ -74,59 +74,61 @@ class InspectorPropertyGroup extends InspectorProperty:
 	func set_toggled(toggled: bool) -> void:
 		_button.set_pressed(toggled)
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_GROUP
 
 ## Handle [annotation @GDScript.@export_subgroup] property.
 class InspectorPropertySubgroup extends InspectorPropertyGroup:
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 		self.set_theme_type_variation(&"InspectorPropertySubGroup")
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_SUBGROUP
 
 ## Handle [bool] property.
 class InspectorPropertyBool extends InspectorProperty:
 	var check_box: CheckBox = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
-		check_box = create_bool_control(set_value, get_value, is_editable())
+		check_box = create_bool_control(setter, getter)
 		create_flow_container(property["name"], check_box)
 
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_BOOL, "bool", create_bool_control)
 
-	static func create_bool_control(setter: Callable, getter: Callable, editable: bool) -> CheckBox:
+	static func create_bool_control(setter: Callable, getter: Callable) -> CheckBox:
 		var check_box := CheckBox.new()
-		check_box.set_disabled(not editable)
 		check_box.set_text("On")
 		check_box.set_flat(true)
 		check_box.set_pressed_no_signal(getter.call())
 
-		check_box.toggled.connect(func(value: bool) -> void:
-			setter.call(value)
-			check_box.set_pressed_no_signal(getter.call())
-		)
+		if setter.is_valid():
+			check_box.toggled.connect(func(value: bool) -> void:
+				setter.call(value)
+				check_box.set_pressed_no_signal(getter.call())
+			)
+		else:
+			check_box.set_disabled(true)
 
 		return check_box
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_BOOL
 
 ## Handle [int] or [float] property.
 class InspectorPropertyNumber extends InspectorProperty:
 	var spin_box: SpinBox = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		if property["type"] == TYPE_INT:
-			spin_box = create_int_control(set_value, get_value, is_editable())
+			spin_box = create_int_control(setter, getter)
 		else:
-			spin_box = create_float_control(set_value, get_value, is_editable())
+			spin_box = create_float_control(setter, getter)
 
 		if property["hint"] == PROPERTY_HINT_RANGE:
 			var split: PackedStringArray = get_hint_string().split(',', false)
@@ -141,38 +143,42 @@ class InspectorPropertyNumber extends InspectorProperty:
 		InspectorPropertyType.register_type(TYPE_INT, "int", create_int_control)
 		InspectorPropertyType.register_type(TYPE_FLOAT, "float", create_float_control)
 
-	static func create_int_control(setter: Callable, getter: Callable, editable: bool) -> SpinBox:
+	static func create_int_control(setter: Callable, getter: Callable) -> SpinBox:
 		var spin_box := SpinBox.new()
-		spin_box.set_editable(editable)
 		spin_box.set_min(INT32_MIN)
 		spin_box.set_max(INT32_MAX)
 		spin_box.set_step(1.0)
 		spin_box.set_use_rounded_values(true)
 		spin_box.set_value_no_signal(getter.call())
 
-		spin_box.value_changed.connect(func(value: int) -> void:
-			setter.call(value)
-			spin_box.set_value_no_signal(getter.call())
-		)
+		if setter.is_valid():
+			spin_box.value_changed.connect(func(value: int) -> void:
+				setter.call(value)
+				spin_box.set_value_no_signal(getter.call())
+			)
+		else:
+			spin_box.set_editable(false)
 
 		return spin_box
 
-	static func create_float_control(setter: Callable, getter: Callable, editable: bool) -> SpinBox:
+	static func create_float_control(setter: Callable, getter: Callable) -> SpinBox:
 		var spin_box := SpinBox.new()
-		spin_box.set_editable(editable)
 		spin_box.set_min(INT32_MIN)
 		spin_box.set_max(INT32_MAX)
 		spin_box.set_step(0.001)
 		spin_box.set_value_no_signal(getter.call())
 
-		spin_box.value_changed.connect(func(value: float) -> void:
-			setter.call(value)
-			spin_box.set_value_no_signal(getter.call())
-		)
+		if setter.is_valid():
+			spin_box.value_changed.connect(func(value: float) -> void:
+				setter.call(value)
+				spin_box.set_value_no_signal(getter.call())
+			)
+		else:
+			spin_box.set_editable(false)
 
 		return spin_box
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
 
 ## Handle [String] or [StringName] property.
@@ -180,13 +186,13 @@ class InspectorPropertyString extends InspectorProperty:
 	var line_edit: LineEdit = null
 	var choose_file: Button = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		if property["type"] == TYPE_STRING:
-			line_edit = create_string_control(set_value, get_value, editable)
+			line_edit = create_string_control(setter, getter)
 		else:
-			line_edit = create_string_name_control(set_value, get_value, editable)
+			line_edit = create_string_name_control(setter, getter)
 
 		var hint: PropertyHint = property["hint"]
 		if not is_hint_file_or_dir(hint):
@@ -241,21 +247,22 @@ class InspectorPropertyString extends InspectorProperty:
 		InspectorPropertyType.register_type(TYPE_STRING, "String", create_string_control)
 		InspectorPropertyType.register_type(TYPE_STRING_NAME, "StringName", create_string_name_control)
 
-	static func _create_line_edit(setter: Callable, getter: Callable, editable: bool, string_name: bool) -> LineEdit:
+	static func _create_line_edit(setter: Callable, getter: Callable, string_name: bool) -> LineEdit:
 		var line_edit := LineEdit.new()
-		line_edit.set_editable(editable)
+		line_edit.set_editable(setter.is_valid())
 		line_edit.set_text(getter.call())
 
 		if string_name:
 			line_edit.set_placeholder("StringName")
-			line_edit.text_changed.connect(func(value: StringName) -> void:
-				var caret: int = line_edit.get_caret_column()
+			if setter.is_valid():
+				line_edit.text_changed.connect(func(value: StringName) -> void:
+					var caret: int = line_edit.get_caret_column()
 
-				setter.call(value)
-				line_edit.set_text(getter.call())
-				line_edit.set_caret_column(caret)
-			)
-		else:
+					setter.call(value)
+					line_edit.set_text(getter.call())
+					line_edit.set_caret_column(caret)
+				)
+		elif setter.is_valid():
 			line_edit.text_changed.connect(func(value: String) -> void:
 				var caret: int = line_edit.get_caret_column()
 
@@ -266,17 +273,17 @@ class InspectorPropertyString extends InspectorProperty:
 
 		return line_edit
 
-	static func create_string_control(setter: Callable, getter: Callable, editable: bool) -> LineEdit:
-		return _create_line_edit(setter, getter, editable, false)
+	static func create_string_control(setter: Callable, getter: Callable) -> LineEdit:
+		return _create_line_edit(setter, getter, false)
 
-	static func create_string_name_control(setter: Callable, getter: Callable, editable: bool) -> LineEdit:
-		return _create_line_edit(setter, getter, editable, true)
+	static func create_string_name_control(setter: Callable, getter: Callable) -> LineEdit:
+		return _create_line_edit(setter, getter, true)
 
 	static func is_hint_file_or_dir(hint: PropertyHint) -> bool:
 		return hint == PROPERTY_HINT_FILE or hint == PROPERTY_HINT_DIR or\
 			hint == PROPERTY_HINT_GLOBAL_FILE or hint == PROPERTY_HINT_GLOBAL_DIR
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
@@ -287,8 +294,8 @@ class InspectorPropertyMultiline extends InspectorProperty:
 	var window: AcceptDialog = null
 	var window_text_edit: TextEdit = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		var container := VBoxContainer.new()
 		container.set_name("Container")
@@ -312,7 +319,6 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		container.add_child(hbox)
 
 		text_edit = TextEdit.new()
-		text_edit.set_editable(editable)
 		text_edit.set_name("TextEdit")
 		text_edit.set_text(get_value())
 		text_edit.set_tooltip_text(text_edit.get_text())
@@ -320,7 +326,12 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		text_edit.set_custom_minimum_size(Vector2(0.0, 96.0))
 		text_edit.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 		text_edit.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		text_edit.text_changed.connect(_on_text_edit_text_changed)
+
+		if setter.is_valid():
+			text_edit.text_changed.connect(_on_text_edit_text_changed)
+		else:
+			text_edit.set_editable(false)
+
 		hbox.add_child(text_edit)
 
 		maximize = Button.new()
@@ -363,7 +374,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 			window.confirmed.connect(_on_window_confirmed)
 
 			window_text_edit = TextEdit.new()
-			window_text_edit.set_editable(is_editable())
+#			window_text_edit.set_editable(is_editable())
 			window_text_edit.set_name("TextEdit")
 			window_text_edit.set_text(get_value())
 			window.add_child(window_text_edit)
@@ -373,19 +384,19 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		window_text_edit.set_text(get_value())
 		window.popup_centered_clamped(Vector2(500, 300))
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
 
 ## Handle [Vector2] or [Vector2i] property.
 class InspectorPropertyVector2 extends InspectorProperty:
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		var box: BoxContainer = null
 		if property["type"] == TYPE_VECTOR2:
-			box = create_vector2_control(set_value, get_value, editable)
+			box = create_vector2_control(setter, getter)
 		else:
-			box = create_vector2i_control(set_value, get_value, editable)
+			box = create_vector2i_control(setter, getter)
 
 		box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
@@ -396,14 +407,14 @@ class InspectorPropertyVector2 extends InspectorProperty:
 		InspectorPropertyType.register_type(TYPE_VECTOR2, "Vector2", create_vector2_control)
 		InspectorPropertyType.register_type(TYPE_VECTOR2I, "Vector2i", create_vector2i_control)
 
-	static func _create_vector2_control(setter: Callable, getter: Callable, editable: bool, is_vector2i: bool) -> BoxContainer:
+	static func _create_vector2_control(setter: Callable, getter: Callable, is_vector2i: bool) -> BoxContainer:
 		var box := BoxContainer.new()
 		box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
 		var value: Vector2 = getter.call()
 
 		var x_spin := SpinBox.new()
-		x_spin.set_editable(editable)
+		x_spin.set_editable(setter.is_valid())
 		x_spin.set_name("X")
 		x_spin.set_prefix("x")
 		x_spin.set_min(INT32_MIN)
@@ -441,25 +452,25 @@ class InspectorPropertyVector2 extends InspectorProperty:
 
 		return box
 
-	static func create_vector2_control(setter: Callable, getter: Callable, editable: bool) -> BoxContainer:
-		return _create_vector2_control(setter, getter, editable, false)
+	static func create_vector2_control(setter: Callable, getter: Callable) -> BoxContainer:
+		return _create_vector2_control(setter, getter, false)
 
-	static func create_vector2i_control(setter: Callable, getter: Callable, editable: bool) -> BoxContainer:
-		return _create_vector2_control(setter, getter, editable, true)
+	static func create_vector2i_control(setter: Callable, getter: Callable) -> BoxContainer:
+		return _create_vector2_control(setter, getter, true)
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
 class InspectorPropertyVector3 extends InspectorProperty:
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		var box: BoxContainer = null
 		if property["type"] == TYPE_VECTOR3I:
-			box = create_vector3i_control(set_value, get_value, editable)
+			box = create_vector3i_control(setter, getter)
 		else:
-			box = create_vector3_control(set_value, get_value, editable)
+			box = create_vector3_control(setter, getter)
 
 		create_flow_container(property["name"], box).add_to_group(&"vertical")
 
@@ -467,14 +478,14 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		InspectorPropertyType.register_type(TYPE_VECTOR3, "Vector3", create_vector3_control)
 		InspectorPropertyType.register_type(TYPE_VECTOR3I, "Vector3i", create_vector3i_control)
 
-	static func _create_vector3_control(setter: Callable, getter: Callable, editable: bool, is_vector3i: bool) -> BoxContainer:
+	static func _create_vector3_control(setter: Callable, getter: Callable, is_vector3i: bool) -> BoxContainer:
 		var box := BoxContainer.new()
 		box.add_to_group(&"vertical")
 
 		var value: Vector3 = getter.call()
 
 		var x_spin := SpinBox.new()
-		x_spin.set_editable(editable)
+		x_spin.set_editable(setter.is_valid())
 		x_spin.set_name("X")
 		x_spin.set_prefix("x")
 		x_spin.set_min(INT32_MIN)
@@ -521,23 +532,23 @@ class InspectorPropertyVector3 extends InspectorProperty:
 
 		return box
 
-	static func create_vector3_control(setter: Callable, getter: Callable, editable: bool) -> BoxContainer:
-		return _create_vector3_control(setter, getter, editable, false)
+	static func create_vector3_control(setter: Callable, getter: Callable) -> BoxContainer:
+		return _create_vector3_control(setter, getter, false)
 
-	static func create_vector3i_control(setter: Callable, getter: Callable, editable: bool) -> BoxContainer:
-		return _create_vector3_control(setter, getter, editable, true)
+	static func create_vector3i_control(setter: Callable, getter: Callable) -> BoxContainer:
+		return _create_vector3_control(setter, getter, true)
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
 
 ## Handle [Color] property.
 class InspectorPropertyColor extends InspectorProperty:
 	var color_picker: ColorPickerButton = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
-		color_picker = create_color_control(set_value, get_value, editable)
+		color_picker = create_color_control(setter, getter)
 		color_picker.set_edit_alpha(get_hint() == PROPERTY_HINT_COLOR_NO_ALPHA)
 
 		create_flow_container(property["name"], color_picker)
@@ -545,33 +556,34 @@ class InspectorPropertyColor extends InspectorProperty:
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_COLOR, "Color", create_color_control)
 
-	static func create_color_control(setter: Callable, getter: Callable, editable: bool) -> ColorPickerButton:
+	static func create_color_control(setter: Callable, getter: Callable) -> ColorPickerButton:
 		var color_picker := ColorPickerButton.new()
-		color_picker.set_disabled(not editable)
 		color_picker.set_pick_color(getter.call())
 
-		color_picker.color_changed.connect(func(value: Color) -> void:
-			setter.call(value)
-			color_picker.set_pick_color(getter.call())
-		)
+		if setter.is_valid():
+			color_picker.color_changed.connect(func(value: Color) -> void:
+				setter.call(value)
+				color_picker.set_pick_color(getter.call())
+			)
+		else:
+			color_picker.set_disabled(true)
 
 		var picker: ColorPicker = color_picker.get_picker()
 		picker.set_presets_visible(false)
 
 		return color_picker
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_COLOR
 
 ## Handle [param enum] property.
 class InspectorPropertyEnum extends InspectorProperty:
 	var option_button: OptionButton = null
 
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		option_button = OptionButton.new()
-		option_button.set_disabled(not editable)
 		option_button.set_clip_text(true)
 
 		var hint_split: PackedStringArray = String(property["hint_string"]).split(",", false)
@@ -586,20 +598,24 @@ class InspectorPropertyEnum extends InspectorProperty:
 				option_button.add_item(split[0], i)
 
 		option_button.select(option_button.get_item_index(get_value()))
-		option_button.get_popup().id_pressed.connect(_on_id_pressed)
+
+		if setter.is_valid():
+			option_button.get_popup().id_pressed.connect(_on_id_pressed)
+		else:
+			option_button.set_disabled(true)
 
 		create_flow_container(property["name"], option_button)
 
 	func _on_id_pressed(id: int) -> void:
 		option_button.select(option_button.get_item_index(set_and_return_value(id)))
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
 
 ## Handle [int] property with [param @export_flags] annotation.
 class InspectorPropertyFlags extends InspectorProperty:
-	func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-		super(object, property, editable, setter, getter)
+	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+		super(object, property, setter, getter)
 
 		var vbox := VBoxContainer.new()
 		var value: int = get_value()
@@ -607,25 +623,27 @@ class InspectorPropertyFlags extends InspectorProperty:
 		var split : PackedStringArray = String(property["hint_string"]).split(",", false)
 		for i in split.size():
 			var check_box := CheckBox.new()
-			check_box.set_disabled(not editable)
 			check_box.set_text(split[i])
 			check_box.set_pressed(value & (1 << i))
 
-			check_box.toggled.connect(func(pressed: bool) -> void:
-				if pressed:
-					set_value(get_value() | (1 << i))
-				else:
-					set_value(get_value() & ~(1 << i))
+			if setter.is_valid():
+				check_box.toggled.connect(func(pressed: bool) -> void:
+					if pressed:
+						set_value(get_value() | (1 << i))
+					else:
+						set_value(get_value() & ~(1 << i))
 
-				check_box.set_pressed(get_value() & 1 << i)
-			)
+					check_box.set_pressed(get_value() & 1 << i)
+				)
+			else:
+				check_box.set_disabled(true)
 
 			vbox.add_child(check_box)
 
 		var label: Label = create_flow_container(property["name"], vbox).get_node(^"Label")
 		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
-	static func can_handle(_object: Object, property: Dictionary, _editable: bool) -> bool:
+	static func can_handle(_object: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
 
 

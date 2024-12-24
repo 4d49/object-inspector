@@ -176,10 +176,24 @@ func is_valid_property(property: Dictionary) -> bool:
 
 	return property["usage"] == PROPERTY_USAGE or property["usage"] == PROPERTY_USAGE + PROPERTY_USAGE_READ_ONLY
 
+
+static func default_setter(object: Object, property: StringName, readonly: bool) -> Callable:
+	if readonly:
+		return Callable()
+	else:
+		return PropertyHelper.object_setter(object, property)
+
+static func default_getter(object: Object, property: StringName) -> Callable:
+	return PropertyHelper.object_getter(object, property)
+
 ## Return [Control] for property.
 func create_property_control(object: Object, property: Dictionary) -> Control:
 	var readonly: bool = is_readonly() or property["usage"] & PROPERTY_USAGE_READ_ONLY
-	return InspectorProperty.create_property(object, property, not readonly)
+
+	var setter: Callable = default_setter(object, property.name, is_readonly())
+	var getter: Callable = default_getter(object, property.name)
+
+	return InspectorProperty.create_property(object, property, setter, getter)
 
 ## Update Inspector properties.
 func update_inspector() -> void:
