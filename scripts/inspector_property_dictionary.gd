@@ -57,6 +57,7 @@ static func create_control(object: Object, property: Dictionary, setter: Callabl
 
 class InspectorPropertyTypeDictionary extends Button:
 	var _dict: Dictionary = {}
+	var _is_readonly: bool = false
 
 	var _vbox: VBoxContainer = null
 
@@ -80,10 +81,11 @@ class InspectorPropertyTypeDictionary extends Button:
 
 	var _add_button: Button = null
 
-	func _init(dictionary: Dictionary) -> void:
+	func _init(dictionary: Dictionary, readonly: bool) -> void:
 		self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 		_dict = dictionary
+		_is_readonly = readonly
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(dictionary_to_text(dictionary))
@@ -154,7 +156,7 @@ class InspectorPropertyTypeDictionary extends Button:
 	func create_element(index: int) -> Container:
 		var key: Variant = _dict.keys()[index]
 
-		var setter: Callable = func(value: Variant) -> void:
+		var setter: Callable = Callable() if _is_readonly else func(value: Variant) -> void:
 			_dict[key] = value
 		var getter: Callable = func() -> Variant:
 			return _dict[key]
@@ -179,7 +181,8 @@ class InspectorPropertyTypeDictionary extends Button:
 		header.set_vertical(control.is_in_group(&"vertical"))
 		container.add_child(header)
 
-		hbox.add_child(create_edit_button(key))
+		if not _is_readonly:
+			hbox.add_child(create_edit_button(key))
 
 		return hbox
 
@@ -344,8 +347,8 @@ class InspectorPropertyTypeDictionary extends Button:
 		return "Dictionary (size %d)" % dictionary.size()
 
 
-static func create_dictionary_control(_setter: Callable, getter: Callable) -> InspectorPropertyTypeDictionary:
+static func create_dictionary_control(setter: Callable, getter: Callable) -> InspectorPropertyTypeDictionary:
 	var dictionary: Dictionary = getter.call()
-	var dictionary_control := InspectorPropertyTypeDictionary.new(dictionary)
+	var dictionary_control := InspectorPropertyTypeDictionary.new(dictionary, not setter.is_valid())
 
 	return dictionary_control
