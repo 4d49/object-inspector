@@ -101,6 +101,7 @@ static func _static_init() -> void:
 class InspectorPropertyTypeArray extends Button:
 	var _array: Variant = null
 	var _array_type: Variant.Type = TYPE_NIL
+	var _is_readonly: bool = false
 
 	var _panel: PanelContainer = null
 	var _vbox: VBoxContainer = null
@@ -109,11 +110,12 @@ class InspectorPropertyTypeArray extends Button:
 	var _size_spin: SpinBox = null
 	var _paginator: Paginator = null
 
-	func _init(array: Variant) -> void:
+	func _init(array: Variant, readonly: bool) -> void:
 		self.set_theme_type_variation(&"InspectorPropertyArray")
 
 		_array = array
 		_array_type = get_array_type(array)
+		_is_readonly = readonly
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(array_to_string(array))
@@ -216,7 +218,7 @@ class InspectorPropertyTypeArray extends Button:
 		if value_type == TYPE_NIL:
 			value_type = typeof(value)
 
-		var setter: Callable = func(new_value: Variant) -> void:
+		var setter: Callable = Callable() if _is_readonly else func(new_value: Variant) -> void:
 			_array[index] = new_value
 		var getter: Callable = func() -> Variant:
 			return _array[index]
@@ -241,10 +243,11 @@ class InspectorPropertyTypeArray extends Button:
 		header.set_vertical(control.is_in_group(&"vertical"))
 		container.add_child(header)
 
-		if _array_type:
-			hbox.add_child(create_delete_button(index))
-		else:
-			hbox.add_child(create_edit_button(index))
+		if not _is_readonly:
+			if _array_type:
+				hbox.add_child(create_delete_button(index))
+			else:
+				hbox.add_child(create_edit_button(index))
 
 		return hbox
 
@@ -285,7 +288,12 @@ class InspectorPropertyTypeArray extends Button:
 		_size_spin.set_value_no_signal(_array.size())
 		_size_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 		_size_spin.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		_size_spin.value_changed.connect(set_array_size)
+
+		if _is_readonly:
+			_size_spin.set_editable(false)
+		else:
+			_size_spin.value_changed.connect(set_array_size)
+
 		hbox.add_child(_size_spin)
 
 		_hseparator = HSeparator.new()
@@ -339,8 +347,8 @@ class InspectorPropertyTypeArray extends Button:
 		return InspectorPropertyType.create_control(type, setter, getter)
 
 
-static func create_array_control(_setter: Callable, getter: Callable) -> InspectorPropertyTypeArray:
+static func create_array_control(setter: Callable, getter: Callable) -> InspectorPropertyTypeArray:
 	var array: Variant = getter.call()
-	var array_control := InspectorPropertyTypeArray.new(array)
+	var array_control := InspectorPropertyTypeArray.new(array, not setter.is_valid())
 
 	return array_control
