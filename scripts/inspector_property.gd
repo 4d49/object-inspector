@@ -152,7 +152,3 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 
 	parent.add_child(container)
 	return container
-
-## Return [param true] if [InspectorProperty] can handle the object and property.
-static func can_handle(object: Object, property: Dictionary) -> bool:
-	return false
