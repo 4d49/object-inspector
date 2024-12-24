@@ -52,14 +52,14 @@ static func create_property(
 
 	for declaration: Dictionary in _declarations:
 		var validation: Callable = declaration[&"validation"]
-		if not validation.is_valid() or not validation.call(object, property, editable):
+		if not validation.is_valid() or not validation.call(object, property):
 			continue
 
 		var constructor: Callable = declaration[&"constructor"]
 		if not constructor.is_valid():
 			continue
 
-		var control: Control = constructor.call(object, property, editable, setter, getter)
+		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
 			control.set_name(property["name"])
 			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
@@ -81,10 +81,8 @@ var _usage: int = PROPERTY_USAGE_NONE
 var _setter: Callable
 var _getter: Callable
 
-var _editable: bool = true
 
-
-func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
+func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 	self.set_theme_type_variation(&"InspectorProperty")
 
 	_object = object
@@ -98,8 +96,6 @@ func _init(object: Object, property: Dictionary, editable: bool, setter: Callabl
 
 	_setter = setter
 	_getter = getter
-
-	_editable = editable
 
 
 func get_object() -> Object:
@@ -125,10 +121,6 @@ func get_hint_string() -> String:
 
 func get_usage() -> PropertyUsageFlags:
 	return _usage
-
-
-func is_editable() -> bool:
-	return _editable
 
 
 func get_setter() -> Callable:
@@ -179,5 +171,5 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 	return container
 
 ## Return [param true] if [InspectorProperty] can handle the object and property.
-static func can_handle(object: Object, property: Dictionary, editable: bool) -> bool:
+static func can_handle(object: Object, property: Dictionary) -> bool:
 	return false

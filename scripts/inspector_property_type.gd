@@ -31,14 +31,16 @@ static func get_type_list() -> Array[Dictionary]:
 			&"name": _declarations[type][&"name"],
 		}
 		type_list.push_back(declaration)
-	
+
 	return type_list
 
 
 static func is_valid_type(type: Variant.Type) -> bool:
 	return _declarations.has(type)
 
-static func create_control(type: Variant.Type, setter: Callable, getter: Callable, editable: bool) -> Control:
+static func create_control(type: Variant.Type, setter: Callable, getter: Callable) -> Control:
+	const NULL: Dictionary = {}
+
 	var value: Variant = getter.call()
 
 	if value == null:
@@ -46,7 +48,7 @@ static func create_control(type: Variant.Type, setter: Callable, getter: Callabl
 	elif type == TYPE_NIL:
 		type = typeof(value)
 
-	var declaration: Dictionary = _declarations.get(type, {})
+	var declaration: Dictionary = _declarations.get(type, NULL)
 	if declaration.is_empty():
 		return null
 
@@ -54,4 +56,4 @@ static func create_control(type: Variant.Type, setter: Callable, getter: Callabl
 	if not constructor.is_valid():
 		return null
 
-	return constructor.call(setter, getter, editable)
+	return constructor.call(setter, getter)

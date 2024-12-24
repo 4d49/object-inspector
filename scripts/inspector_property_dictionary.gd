@@ -13,8 +13,8 @@ var _container: VBoxContainer = null
 var _dictionary_control: InspectorPropertyTypeDictionary = null
 
 
-func _init(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> void:
-	super(object, property, editable, setter, getter)
+func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
+	super(object, property, setter, getter)
 	self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 	_container = VBoxContainer.new()
@@ -34,7 +34,7 @@ func _init(object: Object, property: Dictionary, editable: bool, setter: Callabl
 	label.set_stretch_ratio(0.75)
 	hbox.add_child(label)
 
-	_dictionary_control = create_dictionary_control(set_value, get_value, editable)
+	_dictionary_control = create_dictionary_control(set_value, get_value)
 	_dictionary_control.set_name("Property")
 	_dictionary_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_dictionary_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -43,7 +43,7 @@ func _init(object: Object, property: Dictionary, editable: bool, setter: Callabl
 	self.add_child(_container)
 
 
-static func can_handle(object: Object, property: Dictionary, _editable: bool) -> bool:
+static func can_handle(object: Object, property: Dictionary) -> bool:
 	return property["type"] == TYPE_DICTIONARY
 
 
@@ -54,7 +54,6 @@ static func _static_init() -> void:
 
 class InspectorPropertyTypeDictionary extends Button:
 	var _dict: Dictionary = {}
-	var _editable: bool = false
 
 	var _vbox: VBoxContainer = null
 
@@ -78,11 +77,10 @@ class InspectorPropertyTypeDictionary extends Button:
 
 	var _add_button: Button = null
 
-	func _init(dictionary: Dictionary, editable: bool) -> void:
+	func _init(dictionary: Dictionary) -> void:
 		self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 		_dict = dictionary
-		_editable = editable
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(dictionary_to_text(dictionary))
@@ -147,8 +145,8 @@ class InspectorPropertyTypeDictionary extends Button:
 
 		return edit
 
-	func create_control(type: Variant.Type, setter: Callable, getter: Callable, editable: bool) -> BoxContainer:
-		return InspectorPropertyType.create_control(type, setter, getter, editable)
+	func create_control(type: Variant.Type, setter: Callable, getter: Callable) -> BoxContainer:
+		return InspectorPropertyType.create_control(type, setter, getter)
 
 	func create_element(index: int) -> Container:
 		var key: Variant = _dict.keys()[index]
@@ -158,7 +156,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		var getter: Callable = func() -> Variant:
 			return _dict[key]
 
-		var control: Control = create_control(typeof(_dict[key]), setter, getter, _editable)
+		var control: Control = create_control(typeof(_dict[key]), setter, getter)
 		if not is_instance_valid(control):
 			return null
 
@@ -196,7 +194,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		if is_instance_valid(_key_control):
 			_key_control.queue_free()
 
-		_key_control = InspectorPropertyType.create_control(type, set_key_value, get_key_value, true) # Always editable.
+		_key_control = InspectorPropertyType.create_control(type, set_key_value, get_key_value)
 		if is_instance_valid(_key_control):
 			_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -222,7 +220,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		if is_instance_valid(_value_control):
 			_value_control.queue_free()
 
-		_value_control = InspectorPropertyType.create_control(type, set_value, get_value, true) # Always editable.
+		_value_control = InspectorPropertyType.create_control(type, set_value, get_value)
 		if is_instance_valid(_value_control):
 			_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_value_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -343,8 +341,8 @@ class InspectorPropertyTypeDictionary extends Button:
 		return "Dictionary (size %d)" % dictionary.size()
 
 
-static func create_dictionary_control(_setter: Callable, getter: Callable, editable: bool) -> InspectorPropertyTypeDictionary:
+static func create_dictionary_control(_setter: Callable, getter: Callable) -> InspectorPropertyTypeDictionary:
 	var dictionary: Dictionary = getter.call()
-	var dictionary_control := InspectorPropertyTypeDictionary.new(dictionary, editable)
+	var dictionary_control := InspectorPropertyTypeDictionary.new(dictionary)
 
 	return dictionary_control
