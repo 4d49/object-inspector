@@ -10,6 +10,9 @@ script/source = "# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT L
 extends PanelContainer
 
 
+const READ_ONLY = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY
+
+
 class ExampleObject extends RefCounted:
 	enum Type {
 		BOOL,
@@ -31,12 +34,12 @@ class ExampleObject extends RefCounted:
 
 	@export_group(\"Boolean\")
 	@export var boolean: bool = randi() % 2
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var boolean_readonly: bool = randi() % 2
 
 	@export_group(\"Integer\")
 	@export var integer: int = randi()
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var integer_readonly: int = randi() % 100
 
 	@export_range(0, 1000) var integer_range: int = randi_range(0, 1000)
@@ -44,7 +47,7 @@ class ExampleObject extends RefCounted:
 
 	@export_group(\"Float\")
 	@export var floating_point: float = randf_range(-100_000, 100_000)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var floating_point_readonly: float = randf_range(-100_000, 100_000)
 
 	@export_range(0.0, 100.0) var float_range: float = randf_range(0.0, 100.0)
@@ -52,38 +55,38 @@ class ExampleObject extends RefCounted:
 
 	@export_group(\"String\")
 	@export var string: String = \"The quick brown fox jumps over the lazy dog\"
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var string_readonly: String = \"The quick brown fox jumps over the lazy dog\"
 
 	@export var string_name: StringName = \"%05X\" % randi_range(0, 1000)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var string_name_readonly: StringName = \"%05X\" % randi_range(0, 1000)
 
 	@export_group(\"Color\")
 	@export var color: Color = Color(randf(), randf(), randf(), 0.5)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var color_readonly: Color = Color(randf(), randf(), randf(), 0.5)
 
 	@export_color_no_alpha var color_no_alpha: Color = Color(randf(), randf(), randf())
-	@export_custom(PROPERTY_HINT_NONE + PROPERTY_HINT_COLOR_NO_ALPHA, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE + PROPERTY_HINT_COLOR_NO_ALPHA, \"\", READ_ONLY)
 	var color_no_alpha_readonly: Color = Color(randf(), randf(), randf())
 
 	@export_group(\"Vector2\")
 	@export var vector_2 := Vector2(randf(), randf())
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var vector_2_readonly := Vector2(randf(), randf())
 
 	@export var vector_2i := Vector2i(randi(), randi())
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var vector_2i_readonly := Vector2i(randi(), randi())
 
 	@export_group(\"Vector2\")
 	@export var vector_3 := Vector3(randf(), randf(), randf())
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var vector_3_readonly := Vector3(randf(), randf(), randf())
 
 	@export var vector_3i := Vector3i(randi(), randi(), randi())
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var vector_3i_readonly := Vector3i(randi(), randi(), randi())
 
 	@export_group(\"Enum\")
@@ -95,48 +98,48 @@ class ExampleObject extends RefCounted:
 	@export_category(\"Arrays\")
 	@export_group(\"Untyped\")
 	@export var untyped: Array = random_array()
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var untyped_readonly: Array = random_array()
 
 	@export_group(\"Typed\")
 	@export var array_bool: Array[bool] = random_typed_array(Type.BOOL)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_bool_readonly: Array[bool] = random_typed_array(Type.BOOL)
 
 	@export var array_int: Array[int] = random_typed_array(Type.INT)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_int_readonly: Array[int] = random_typed_array(Type.INT)
 
 	@export var array_float: Array[float] = random_typed_array(Type.FLOAT)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_float_readonly: Array[float] = random_typed_array(Type.FLOAT)
 
 	@export var array_string: Array[String] = random_typed_array(Type.STRING)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_string_readonly: Array[String] = random_typed_array(Type.STRING)
 
 	@export var array_string_name: Array[StringName] = random_typed_array(Type.STRING_NAME)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_string_name_readonly: Array[StringName] = random_typed_array(Type.STRING_NAME)
 
 	@export var array_color: Array[Color] = random_typed_array(Type.COLOR)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_color_readonly: Array[Color] = random_typed_array(Type.COLOR)
 
 	@export var array_vector_2: Array[Vector2] = random_typed_array(Type.VECTOR_2)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_2_readonly: Array[Vector2] = random_typed_array(Type.VECTOR_2)
 
 	@export var array_vector_2i: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_2i_readonly: Array[Vector2i] = random_typed_array(Type.VECTOR_2I)
 
 	@export var array_vector_3: Array[Vector3] = random_typed_array(Type.VECTOR_3)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_3_readonly: Array[Vector3] = random_typed_array(Type.VECTOR_3)
 
 	@export var array_vector_3i: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
-	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_READ_ONLY)
+	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var array_vector_3i_readonly: Array[Vector3i] = random_typed_array(Type.VECTOR_3I)
 
 	@export_group(\"Packed Arrays\")
