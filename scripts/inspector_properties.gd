@@ -522,7 +522,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		super(object, property, setter, getter)
 
 		color_picker = create_color_control(setter, getter)
-		color_picker.set_edit_alpha(get_hint() == PROPERTY_HINT_COLOR_NO_ALPHA)
+		color_picker.set_edit_alpha(property.hint != PROPERTY_HINT_COLOR_NO_ALPHA)
 
 		create_flow_container(property["name"], color_picker)
 
