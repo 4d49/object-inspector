@@ -34,7 +34,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	label.set_stretch_ratio(0.75)
 	hbox.add_child(label)
 
-	_dictionary_control = create_dictionary_control(set_value, get_value)
+	_dictionary_control = create_dictionary_control(setter, getter)
 	_dictionary_control.set_name("Property")
 	_dictionary_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_dictionary_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -43,13 +43,16 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	self.add_child(_container)
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
-	return property["type"] == TYPE_DICTIONARY
-
-
 static func _static_init() -> void:
-	InspectorProperty.declare_property(can_handle, InspectorPropertyDictionary.new)
+	InspectorProperty.declare_property(create_control)
 	InspectorPropertyType.register_type(TYPE_DICTIONARY, "Dictionary", create_dictionary_control)
+
+
+static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_DICTIONARY:
+		return InspectorPropertyDictionary.new(object, property, setter, getter)
+	else:
+		return null
 
 
 class InspectorPropertyTypeDictionary extends Button:

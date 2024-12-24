@@ -39,7 +39,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	label.set_stretch_ratio(0.75)
 	header.add_child(label)
 
-	_array_control = create_array_control(set_value, get_value)
+	_array_control = create_array_control(setter, getter)
 	_array_control.set_name("Property")
 	_array_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	_array_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -48,16 +48,21 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	self.add_child(_container)
 
 
-static func is_valid_type(type: Variant.Type) -> bool:
+static func is_supported_type(type: Variant.Type) -> bool:
 	return InspectorPropertyType.is_valid_type(type)
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
-	if property["type"] == TYPE_ARRAY:
-		var array: Array = object.get(property["name"])
-		var array_type := array.get_typed_builtin()
+static func is_valid_array(object: Object, property: Dictionary) -> bool:
+	if property.type != TYPE_ARRAY:
+		return false
 
-		return array_type == TYPE_NIL or is_valid_type(array_type)
+	var array: Variant = object.get(property.name)
+	if array is Array:
+		var array_type: Variant.Type = array.get_typed_builtin()
+		return array_type == TYPE_NIL or is_supported_type(array_type)
 
+	return false
+
+static func is_valid_packed_array(type: Variant.Type) -> bool:
 	const TYPE_PACKED_ARRAY: PackedByteArray = [
 		TYPE_PACKED_BYTE_ARRAY,
 		TYPE_PACKED_INT32_ARRAY,
@@ -70,11 +75,17 @@ static func can_handle(object: Object, property: Dictionary) -> bool:
 		TYPE_PACKED_COLOR_ARRAY,
 	]
 
-	return TYPE_PACKED_ARRAY.has(property["type"])
+	return type in TYPE_PACKED_ARRAY
+
+static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if is_valid_array(object, property) or is_valid_packed_array(property.type):
+		return InspectorPropertyArray.new(object, property, setter, getter)
+	else:
+		return null
 
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(InspectorPropertyArray.can_handle, InspectorPropertyArray.new)
+	InspectorProperty.declare_property(create_control)
 	InspectorPropertyType.register_type(TYPE_ARRAY, "Array", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_BYTE_ARRAY, "PackedByteArray", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_FLOAT32_ARRAY, "PackedFloat32Array", create_array_control)

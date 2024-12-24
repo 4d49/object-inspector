@@ -29,9 +29,6 @@ class InspectorPropertyCategory extends InspectorProperty:
 	func _enter_tree() -> void:
 		_title.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"header"))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_CATEGORY
-
 ## Handle [annotation @GDScript.@export_group] property.
 class InspectorPropertyGroup extends InspectorProperty:
 	signal toggled(expanded: bool)
@@ -74,17 +71,11 @@ class InspectorPropertyGroup extends InspectorProperty:
 	func set_toggled(toggled: bool) -> void:
 		_button.set_pressed(toggled)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_GROUP
-
 ## Handle [annotation @GDScript.@export_subgroup] property.
 class InspectorPropertySubgroup extends InspectorPropertyGroup:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 		self.set_theme_type_variation(&"InspectorPropertySubGroup")
-
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_SUBGROUP
 
 ## Handle [bool] property.
 class InspectorPropertyBool extends InspectorProperty:
@@ -114,9 +105,6 @@ class InspectorPropertyBool extends InspectorProperty:
 			check_box.set_disabled(true)
 
 		return check_box
-
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_BOOL
 
 ## Handle [int] or [float] property.
 class InspectorPropertyNumber extends InspectorProperty:
@@ -177,9 +165,6 @@ class InspectorPropertyNumber extends InspectorProperty:
 			spin_box.set_editable(false)
 
 		return spin_box
-
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
 
 ## Handle [String] or [StringName] property.
 class InspectorPropertyString extends InspectorProperty:
@@ -283,9 +268,6 @@ class InspectorPropertyString extends InspectorProperty:
 		return hint == PROPERTY_HINT_FILE or hint == PROPERTY_HINT_DIR or\
 			hint == PROPERTY_HINT_GLOBAL_FILE or hint == PROPERTY_HINT_GLOBAL_DIR
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
-
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
 class InspectorPropertyMultiline extends InspectorProperty:
 	var text_edit: TextEdit = null
@@ -384,9 +366,6 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		window_text_edit.set_text(get_value())
 		window.popup_centered_clamped(Vector2(500, 300))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
-
 ## Handle [Vector2] or [Vector2i] property.
 class InspectorPropertyVector2 extends InspectorProperty:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -457,9 +436,6 @@ class InspectorPropertyVector2 extends InspectorProperty:
 
 	static func create_vector2i_control(setter: Callable, getter: Callable) -> BoxContainer:
 		return _create_vector2_control(setter, getter, true)
-
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
 class InspectorPropertyVector3 extends InspectorProperty:
@@ -538,9 +514,6 @@ class InspectorPropertyVector3 extends InspectorProperty:
 	static func create_vector3i_control(setter: Callable, getter: Callable) -> BoxContainer:
 		return _create_vector3_control(setter, getter, true)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
-
 ## Handle [Color] property.
 class InspectorPropertyColor extends InspectorProperty:
 	var color_picker: ColorPickerButton = null
@@ -572,9 +545,6 @@ class InspectorPropertyColor extends InspectorProperty:
 		picker.set_presets_visible(false)
 
 		return color_picker
-
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_COLOR
 
 ## Handle [param enum] property.
 class InspectorPropertyEnum extends InspectorProperty:
@@ -609,9 +579,6 @@ class InspectorPropertyEnum extends InspectorProperty:
 	func _on_id_pressed(id: int) -> void:
 		option_button.select(option_button.get_item_index(set_and_return_value(id)))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
-
 ## Handle [int] property with [param @export_flags] annotation.
 class InspectorPropertyFlags extends InspectorProperty:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -643,20 +610,100 @@ class InspectorPropertyFlags extends InspectorProperty:
 		var label: Label = create_flow_container(property["name"], vbox).get_node(^"Label")
 		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
-
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(InspectorPropertyCategory.can_handle, InspectorPropertyCategory.new)
-	InspectorProperty.declare_property(InspectorPropertyGroup.can_handle, InspectorPropertyGroup.new)
-	InspectorProperty.declare_property(InspectorPropertySubgroup.can_handle, InspectorPropertySubgroup.new)
-	InspectorProperty.declare_property(InspectorPropertyBool.can_handle, InspectorPropertyBool.new)
-	InspectorProperty.declare_property(InspectorPropertyNumber.can_handle, InspectorPropertyNumber.new)
-	InspectorProperty.declare_property(InspectorPropertyString.can_handle, InspectorPropertyString.new)
-	InspectorProperty.declare_property(InspectorPropertyMultiline.can_handle, InspectorPropertyMultiline.new)
-	InspectorProperty.declare_property(InspectorPropertyVector2.can_handle, InspectorPropertyVector2.new)
-	InspectorProperty.declare_property(InspectorPropertyVector3.can_handle, InspectorPropertyVector3.new)
-	InspectorProperty.declare_property(InspectorPropertyColor.can_handle, InspectorPropertyColor.new)
-	InspectorProperty.declare_property(InspectorPropertyEnum.can_handle, InspectorPropertyEnum.new)
-	InspectorProperty.declare_property(InspectorPropertyFlags.can_handle, InspectorPropertyFlags.new)
+	InspectorProperty.declare_property(create_category_control)
+	InspectorProperty.declare_property(create_group_control)
+	InspectorProperty.declare_property(create_subgroup_control)
+	InspectorProperty.declare_property(create_bool_control)
+	InspectorProperty.declare_property(create_number_control)
+	InspectorProperty.declare_property(create_string_control)
+	InspectorProperty.declare_property(create_string_multiline_control)
+	InspectorProperty.declare_property(create_vector2_control)
+	InspectorProperty.declare_property(create_vector3_control)
+	InspectorProperty.declare_property(create_color_control)
+	InspectorProperty.declare_property(create_enum_control)
+	InspectorProperty.declare_property(create_flags_control)
+
+
+static func create_category_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.usage == PROPERTY_USAGE_CATEGORY:
+		return InspectorPropertyCategory.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_group_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.usage == PROPERTY_USAGE_GROUP:
+		return InspectorPropertyGroup.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_subgroup_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.usage == PROPERTY_USAGE_SUBGROUP:
+		return InspectorPropertySubgroup.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_bool_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_BOOL:
+		return InspectorPropertyBool.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_number_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_INT or property.type == TYPE_FLOAT:
+		return InspectorPropertyNumber.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_string_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_STRING or property.type == TYPE_STRING_NAME:
+		return InspectorPropertyString.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_string_multiline_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.hint == PROPERTY_HINT_MULTILINE_TEXT and (property.type == TYPE_STRING or property.type == TYPE_STRING_NAME):
+		return InspectorPropertyMultiline.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_vector2_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_VECTOR2 or property.type == TYPE_VECTOR2I:
+		return InspectorPropertyVector2.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_vector3_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_VECTOR3 or property.type == TYPE_VECTOR3I:
+		return InspectorPropertyVector3.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_color_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.type == TYPE_COLOR:
+		return InspectorPropertyColor.new(object, property, setter, getter)
+
+	return null
+
+static func create_enum_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.hint == PROPERTY_HINT_ENUM and property.type == TYPE_INT:
+		return InspectorPropertyEnum.new(object, property, setter, getter)
+
+	return null
+
+
+static func create_flags_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+	if property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT:
+		return InspectorPropertyEnum.new(object, property, setter, getter)
+
+	return null
