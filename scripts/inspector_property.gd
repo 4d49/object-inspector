@@ -10,22 +10,19 @@ static var _constructors: Array[Callable] = []
 
 ## Declares a supported type for properties. Declaration example:
 ## [codeblock]
-## # Some script.gd...
-## static func _static_init() -> void:
-##   InspectorProperty.declare_property(can_handle, create_control)
-## [/codeblock]
-## [param Validation] must receive three arguments [Object], [Dictionary] and [bool]. And it must return [param true] if the property can be handled. Example:
-## [codeblock]static func can_handle(object: Object, property: Dictionary, editable: bool) -> bool:
-##    return property["type"] == TYPE_FLOAT
-## [/codeblock]
-## [br][param Constructor] must return a [Control] node. Example:
-## [codeblock]static func create_control(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> Control:
-##    var spin_box := SpinBox.new()
-##    spin_box.set_editable(editable)
-##    spin_box.set_value_no_signal(getter.call())
-##    spin_box.value_changed.connect(setter)
+## static func create_custom_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
+##     if property.type == TYPE_FLOAT: # If valid type.
+##         var spin_box := SpinBox.new()
+##         spin_box.set_value_no_signal(getter.call())
 ##
-##    return spin_box
+##         if setter.is_valid():
+##             spin_box.value_changed.connect(setter)
+##         else:
+##             spin_box.set_editable(false)
+##
+##         return spin_box
+##     else:
+##         return null # Return null if is invalid type.
 ## [/codeblock]
 static func declare_property(constructor: Callable) -> void:
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
