@@ -6,7 +6,7 @@ class_name InspectorProperty
 extends PanelContainer
 
 
-static var _declarations: Array[Dictionary] = []
+static var _constructors: Array[Callable] = []
 
 ## Declares a supported type for properties. Declaration example:
 ## [codeblock]
@@ -27,42 +27,25 @@ static var _declarations: Array[Dictionary] = []
 ##
 ##    return spin_box
 ## [/codeblock]
-static func declare_property(validation: Callable, constructor: Callable) -> void:
-	assert(validation.is_valid(), "Invalid validation Callable.")
+static func declare_property(constructor: Callable) -> void:
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
-
-	if validation.is_valid() and constructor.is_valid():
-		var declaration: Dictionary[StringName, Callable] = {
-			&"validation": validation,
-			&"constructor": constructor,
-		}
-		_declarations.push_front(declaration)
+	if constructor.is_valid():
+		_constructors.push_front(constructor)
 
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
-static func create_property(
-		object: Object,
-		property: Dictionary,
-		setter: Callable,
-		getter: Callable,
-		) -> Control:
-
+static func create_property(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 	assert(is_instance_valid(object), "Invalid Object!")
 	if not is_instance_valid(object):
 		return null
 
-	for declaration: Dictionary in _declarations:
-		var validation: Callable = declaration[&"validation"]
-		if not validation.is_valid() or not validation.call(object, property):
-			continue
-
-		var constructor: Callable = declaration[&"constructor"]
+	for constructor: Callable in _constructors:
 		if not constructor.is_valid():
 			continue
 
 		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
-			control.set_name(property["name"])
-			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
+			control.set_name(property.name)
+			control.set_tooltip_text(Inspector.get_object_property_description(object, property.name))
 
 			return control
 
