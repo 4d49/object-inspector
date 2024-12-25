@@ -6,28 +6,38 @@ class_name InspectorProperty
 extends PanelContainer
 
 
-static var _constructors: Array[Callable] = []
+static var _declarations: Array[Dictionary] = []
 
 ## Declares a supported type for properties. Declaration example:
 ## [codeblock]
-## static func create_custom_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
-##     if property.type == TYPE_FLOAT: # If valid type.
-##         var spin_box := SpinBox.new()
-##         spin_box.set_value_no_signal(getter.call())
-##
-##         if setter.is_valid():
-##             spin_box.value_changed.connect(setter)
-##         else:
-##             spin_box.set_editable(false)
-##
-##         return spin_box
-##     else:
-##         return null # Return null if is invalid type.
+## # Some script.gd...
+## static func _static_init() -> void:
+##   InspectorProperty.declare_property(can_handle, create_control)
 ## [/codeblock]
-static func declare_property(constructor: Callable) -> void:
+## [param Validation] must receive three arguments [Object] and [Dictionary]. And it must return [param true] if the property can be handled. Example:
+## [codeblock]static func can_handle(object: Object, property: Dictionary) -> bool:
+##    return property["type"] == TYPE_FLOAT
+## [/codeblock]
+## [br][param Constructor] must return a [Control] node. Example:
+## [codeblock]static func create_control(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> Control:
+##    var spin_box := SpinBox.new()
+##    spin_box.set_editable(editable)
+##    spin_box.set_value_no_signal(getter.call())
+##    spin_box.value_changed.connect(setter)
+##
+##    return spin_box
+## [/codeblock]
+static func declare_property(validation: Callable, constructor: Callable) -> void:
+	assert(validation.is_valid(), "Invalid validation Callable.")
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
-	if constructor.is_valid():
-		_constructors.push_front(constructor)
+
+	if validation.is_valid() and constructor.is_valid():
+		var declaration: Dictionary[StringName, Callable] = {
+			&"validation": validation,
+			&"constructor": constructor,
+		}
+		_declarations.push_front(declaration)
+
 
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
 static func create_property(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
@@ -35,14 +45,19 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 	if not is_instance_valid(object):
 		return null
 
-	for constructor: Callable in _constructors:
+	for declaration: Dictionary in _declarations:
+		var validation: Callable = declaration[&"validation"]
+		if not validation.is_valid() or not validation.call(object, property):
+			continue
+
+		var constructor: Callable = declaration[&"constructor"]
 		if not constructor.is_valid():
 			continue
 
 		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
-			control.set_name(property.name)
-			control.set_tooltip_text(Inspector.get_object_property_description(object, property.name))
+			control.set_name(property["name"])
+			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
 
 			return control
 
@@ -149,3 +164,7 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 
 	parent.add_child(container)
 	return container
+
+## Return [param true] if [InspectorProperty] can handle the object and property.
+static func can_handle(object: Object, property: Dictionary) -> bool:
+	return false
