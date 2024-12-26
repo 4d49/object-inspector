@@ -364,8 +364,12 @@ class InspectorPropertyTypeDictionary extends Button:
 		update_paginator()
 		find_parent("Container").add_child(_vbox)
 
-	static func dictionary_to_text(dictionary: Dictionary) -> String:
-		return "Dictionary (size %d)" % dictionary.size()
+	static func dictionary_to_text(dict: Dictionary) -> String:
+		var string: String = "Dictionary"
+		if dict.is_typed():
+			string += "[" + type_string(dict.get_typed_key_builtin()) + ", " + type_string(dict.get_typed_value_builtin()) + "]"
+
+		return string + " (size " + str(dict.size()) + ")"
 
 
 static func create_dictionary_control(setter: Callable, getter: Callable) -> InspectorPropertyTypeDictionary:
