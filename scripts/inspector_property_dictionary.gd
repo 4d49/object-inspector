@@ -134,7 +134,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		return delete
 
 	func create_edit_button(key: Variant) -> MenuButton:
-		const DELETE = -2
+		const DELETE = 0x100
 
 		var edit := MenuButton.new()
 		edit.set_flat(false)
