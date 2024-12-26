@@ -197,7 +197,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		if is_instance_valid(_key_control):
 			_key_control.queue_free()
 
-		_key_control = InspectorPropertyType.create_control(type, set_key_value, get_key_value)
+		_key_control = create_control(type, set_key_value, get_key_value)
 		if is_instance_valid(_key_control):
 			_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -223,7 +223,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		if is_instance_valid(_value_control):
 			_value_control.queue_free()
 
-		_value_control = InspectorPropertyType.create_control(type, set_value, get_value)
+		_value_control = create_control(type, set_value, get_value)
 		if is_instance_valid(_value_control):
 			_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_value_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
