@@ -20,21 +20,6 @@ var _search_enabled := true:
 	set = set_search_enabled,
 	get = is_search_enabled
 
-@export
-var _category_enadled: bool = true:
-	set = set_category_enabled,
-	get = is_category_enabled
-
-@export
-var _group_enabled: bool = true:
-	set = set_group_enabled,
-	get = is_group_enabled
-
-@export
-var _subgroup_enabled: bool = true:
-	set = set_subgroup_enabled,
-	get = is_subgroup_enabled
-
 @export_flags(
 	"Export only:%d"          % PROPERTY_USAGE_EDITOR,
 	"Category enabled:%d"     % PROPERTY_USAGE_CATEGORY,
@@ -123,39 +108,36 @@ func set_object(object: Object) -> void:
 
 ## Set category handling enabled.
 func set_category_enabled(enabled: bool) -> void:
-	if _category_enadled == enabled:
-		return
-
-	_category_enadled = enabled
-	update_inspector()
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_CATEGORY
+	else:
+		usage_flags &= ~PROPERTY_USAGE_CATEGORY
 
 ## Returns [param true] if category handling is enabled.
 func is_category_enabled() -> bool:
-	return _category_enadled
+	return usage_flags & PROPERTY_USAGE_CATEGORY
 
 ## Set group handling enabled.
 func set_group_enabled(enabled: bool) -> void:
-	if _group_enabled == enabled:
-		return
-
-	_group_enabled = enabled
-	update_inspector()
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_GROUP
+	else:
+		usage_flags &= ~PROPERTY_USAGE_GROUP
 
 ## Returns [param true] if group handling is enabled.
 func is_group_enabled() -> bool:
-	return _group_enabled
+	return usage_flags & PROPERTY_USAGE_GROUP
 
 ## Set sub-group handling enabled.
 func set_subgroup_enabled(enabled: bool) -> void:
-	if _subgroup_enabled == enabled:
-		return
-
-	_subgroup_enabled = enabled
-	update_inspector()
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_SUBGROUP
+	else:
+		usage_flags &= ~PROPERTY_USAGE_SUBGROUP
 
 ## Returns [param true] if sub-group handling is enabled.
 func is_subgroup_enabled() -> bool:
-	return _subgroup_enabled
+	return usage_flags & PROPERTY_USAGE_SUBGROUP
 
 ## Return edited object.
 func get_object() -> Object:
