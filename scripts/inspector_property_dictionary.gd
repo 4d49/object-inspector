@@ -127,8 +127,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		delete.set_name("Delete")
 		delete.set_button_icon(get_theme_icon(&"delete"))
 		delete.pressed.connect(func() -> void:
-			if _dict.erase(key):
-				update_paginator()
+			erase_value(key)
 		)
 
 		return delete
@@ -142,14 +141,12 @@ class InspectorPropertyTypeDictionary extends Button:
 		edit.set_button_icon(get_theme_icon(&"edit"))
 
 		var popup: PopupMenu = edit.get_popup()
-
 		var callable: Callable = func(id: int) -> void:
 			if id == DELETE:
-				_dict.erase(key)
+				erase_value(key)
 			else:
-				_dict[key] = type_convert(null, id)
+				add_value(key, type_convert(null, id))
 
-			update_paginator()
 		init_type_popup(popup, callable)
 
 		popup.add_separator()
@@ -231,6 +228,16 @@ class InspectorPropertyTypeDictionary extends Button:
 	func update_title() -> void:
 		self.set_text(dictionary_to_text(_dict))
 
+	func add_value(key: Variant, value: Variant) -> void:
+		_dict.set(key, value)
+
+		update_title()
+		update_paginator()
+	func erase_value(key: Variant) -> void:
+		if _dict.erase(key):
+			update_title()
+			update_paginator()
+
 	func set_value_type(type: Variant.Type) -> void:
 		if _value_type == type:
 			return
@@ -260,8 +267,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		return label
 
 	func _on_add_pressed() -> void:
-		_dict[_key_value] = _value
-		update_paginator()
+		add_value(_key_value, _value)
 
 	func _on_button_pressed(expanded: bool) -> void:
 		if not expanded:
