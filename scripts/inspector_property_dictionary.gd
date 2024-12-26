@@ -235,6 +235,13 @@ class InspectorPropertyTypeDictionary extends Button:
 	func get_value_type() -> Variant.Type:
 		return _value_type
 
+	func create_null_control() -> Control:
+		var label := Label.new()
+		label.set_text(str(null))
+		label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+
+		return label
+
 	func _on_add_pressed() -> void:
 		_dict[_key_value] = _value
 		update_paginator()
@@ -285,9 +292,7 @@ class InspectorPropertyTypeDictionary extends Button:
 			_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_container.add_child(_key_label)
 
-			_key_control = Label.new()
-			_key_control.set_text(str(null))
-			_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_key_control = create_null_control()
 			_key_container.add_child(_key_control)
 
 			_key_edit = MenuButton.new()
@@ -318,9 +323,7 @@ class InspectorPropertyTypeDictionary extends Button:
 			_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_value_container.add_child(_value_label)
 
-			_value_control = Label.new()
-			_value_control.set_text(str(null))
-			_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_value_control = create_null_control()
 			_value_container.add_child(_value_control)
 
 			_value_edit = MenuButton.new()
