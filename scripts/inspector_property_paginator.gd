@@ -1,7 +1,6 @@
 # Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-class_name InspectorPropertyPaginator
 extends VBoxContainer
 
 
