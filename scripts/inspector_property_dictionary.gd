@@ -54,6 +54,7 @@ static func _static_init() -> void:
 
 class InspectorPropertyTypeDictionary extends Button:
 	var _dict: Dictionary = {}
+	var _dict_keys: Array = []
 	var _is_readonly: bool = false
 
 	var _vbox: VBoxContainer = null
@@ -82,6 +83,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 		_dict = dictionary
+		_dict_keys = dictionary.keys()
 		_is_readonly = readonly or dictionary.is_read_only()
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
@@ -159,7 +161,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		return InspectorPropertyType.create_control(type, setter, getter)
 
 	func create_element(index: int) -> Container:
-		var key: Variant = _dict.keys()[index]
+		var key: Variant = _dict_keys[index]
 
 		var setter: Callable = Callable() if _is_readonly else func(value: Variant) -> void:
 			_dict[key] = value
@@ -235,11 +237,14 @@ class InspectorPropertyTypeDictionary extends Button:
 
 	func add_value(key: Variant, value: Variant) -> void:
 		_dict.set(key, value)
+		_dict_keys = _dict.keys()
 
 		update_title()
 		update_paginator()
 	func erase_value(key: Variant) -> void:
 		if _dict.erase(key):
+			_dict_keys = _dict.keys()
+
 			update_title()
 			update_paginator()
 
