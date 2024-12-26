@@ -28,7 +28,8 @@ class ExampleObject extends RefCounted:
 		MAX,
 	}
 
-	const ARRAY_MAX_SIZE = 1_000
+	const ARRAY_MAX_SIZE = 10_000
+	const DICT_MAX_SIZE = 1_000
 
 	@export_category(\"Simple Types\")
 
@@ -292,7 +293,7 @@ class ExampleObject extends RefCounted:
 	static func random_typed_dict(key_type: Type, value_type: Type, readonly: bool = false) -> Dictionary:
 		var dict := Dictionary({}, to_builtin_type(key_type), &\"\", null, to_builtin_type(value_type), &\"\", null)
 
-		for i: int in randi_range(0, ARRAY_MAX_SIZE):
+		for i: int in randi_range(0, DICT_MAX_SIZE):
 			dict[random_value(key_type)] = random_value(value_type)
 
 		if readonly:
