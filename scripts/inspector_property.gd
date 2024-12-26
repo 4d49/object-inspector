@@ -14,26 +14,26 @@ static var _declarations: Array[Dictionary] = []
 ## static func _static_init() -> void:
 ##   InspectorProperty.declare_property(can_handle, create_control)
 ## [/codeblock]
-## [param Validation] must receive three arguments [Object] and [Dictionary]. And it must return [param true] if the property can be handled. Example:
+## [param Validator] must receive three arguments [Object] and [Dictionary]. And it must return [param true] if the property can be handled. Example:
 ## [codeblock]static func can_handle(object: Object, property: Dictionary) -> bool:
 ##    return property["type"] == TYPE_FLOAT
 ## [/codeblock]
 ## [br][param Constructor] must return a [Control] node. Example:
-## [codeblock]static func create_control(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> Control:
+## [codeblock]static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 ##    var spin_box := SpinBox.new()
-##    spin_box.set_editable(editable)
+##    spin_box.set_editable(setter.is_valid())
 ##    spin_box.set_value_no_signal(getter.call())
 ##    spin_box.value_changed.connect(setter)
 ##
 ##    return spin_box
 ## [/codeblock]
-static func declare_property(validation: Callable, constructor: Callable) -> void:
-	assert(validation.is_valid(), "Invalid validation Callable.")
+static func declare_property(validator: Callable, constructor: Callable) -> void:
+	assert(validator.is_valid(), "Invalid validator Callable.")
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
 
-	if validation.is_valid() and constructor.is_valid():
+	if validator.is_valid() and constructor.is_valid():
 		var declaration: Dictionary[StringName, Callable] = {
-			&"validation": validation,
+			&"validator": validator,
 			&"constructor": constructor,
 		}
 		_declarations.push_front(declaration)
@@ -45,8 +45,8 @@ static func can_handle_property(object: Object, property: Dictionary) -> bool:
 		return false
 
 	for declaration: Dictionary in _declarations:
-		var validation: Callable = declaration[&"validation"]
-		if validation.is_valid() and validation.call(object, property):
+		var validator: Callable = declaration[&"validator"]
+		if validator.is_valid() and validator.call(object, property):
 			return true
 
 	return false
@@ -58,8 +58,8 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 		return null
 
 	for declaration: Dictionary in _declarations:
-		var validation: Callable = declaration[&"validation"]
-		if not validation.is_valid() or not validation.call(object, property):
+		var validator: Callable = declaration[&"validator"]
+		if not validator.is_valid() or not validator.call(object, property):
 			continue
 
 		var constructor: Callable = declaration[&"constructor"]
