@@ -82,7 +82,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 		_dict = dictionary
-		_is_readonly = readonly
+		_is_readonly = readonly or dictionary.is_read_only()
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(dictionary_to_text(dictionary))
