@@ -97,8 +97,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		)
 
 	func update_paginator() -> void:
-		_paginator.set_element_count(_dict.size())
-		_paginator.update_elements()
+		_paginator.set_element_count(_dict.size(), true)
 
 	func create_label(key: Variant) -> Label:
 		var label := Label.new()
