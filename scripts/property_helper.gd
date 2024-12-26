@@ -66,6 +66,11 @@ func add_group(name: String) -> void:
 	property_list_changed.emit()
 
 
+func add_subgroup(name: String) -> void:
+	_property_list.push_back(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_SUBGROUP))
+	property_changed.emit()
+
+
 func add_property(
 		name: StringName,
 		type: Variant.Type,
@@ -73,7 +78,7 @@ func add_property(
 		getter: Callable,
 		hint: PropertyHint = PROPERTY_HINT_NONE,
 		hint_string: String = "",
-		usage: int = PROPERTY_USAGE_DEFAULT + PROPERTY_USAGE_SCRIPT_VARIABLE,
+		usage: int = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SCRIPT_VARIABLE,
 	) -> bool:
 
 	if _setter_map.has(name):

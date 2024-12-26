@@ -20,20 +20,15 @@ var _search_enabled := true:
 	set = set_search_enabled,
 	get = is_search_enabled
 
-@export
-var _category_enadled: bool = true:
-	set = set_category_enabled,
-	get = is_category_enabled
+@export_flags(
+	"Export only:%d"          % PROPERTY_USAGE_EDITOR,
+	"Category enabled:%d"     % PROPERTY_USAGE_CATEGORY,
+	"Group enabled:%d"        % PROPERTY_USAGE_GROUP,
+	"Subgroup enabled:%d"     % PROPERTY_USAGE_SUBGROUP,
+	"Script variable only:%d" % PROPERTY_USAGE_SCRIPT_VARIABLE,
+) var usage_flags: int = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_SCRIPT_VARIABLE:
+	set = set_usage_flags
 
-@export
-var _group_enabled: bool = true:
-	set = set_group_enabled,
-	get = is_group_enabled
-
-@export
-var _subgroup_enabled: bool = true:
-	set = set_subgroup_enabled,
-	get = is_subgroup_enabled
 
 var _object : Object = null
 var _valid_properties: Array[Dictionary] = []
@@ -112,41 +107,48 @@ func set_object(object: Object) -> void:
 	object_changed.emit(object)
 	_update_property_list()
 
-## Set category handling enabled.
-func set_category_enabled(enabled: bool) -> void:
-	if _category_enadled == enabled:
+func set_usage_flags(flags: int) -> void:
+	if usage_flags == flags:
 		return
 
-	_category_enadled = enabled
-	update_inspector()
+	usage_flags = flags
+	_update_property_list()
+
+func get_usage_flags() -> int:
+	return usage_flags
+
+## Set category handling enabled.
+func set_category_enabled(enabled: bool) -> void:
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_CATEGORY
+	else:
+		usage_flags &= ~PROPERTY_USAGE_CATEGORY
 
 ## Returns [param true] if category handling is enabled.
 func is_category_enabled() -> bool:
-	return _category_enadled
+	return usage_flags & PROPERTY_USAGE_CATEGORY
 
 ## Set group handling enabled.
 func set_group_enabled(enabled: bool) -> void:
-	if _group_enabled == enabled:
-		return
-
-	_group_enabled = enabled
-	update_inspector()
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_GROUP
+	else:
+		usage_flags &= ~PROPERTY_USAGE_GROUP
 
 ## Returns [param true] if group handling is enabled.
 func is_group_enabled() -> bool:
-	return _group_enabled
+	return usage_flags & PROPERTY_USAGE_GROUP
 
 ## Set sub-group handling enabled.
 func set_subgroup_enabled(enabled: bool) -> void:
-	if _subgroup_enabled == enabled:
-		return
-
-	_subgroup_enabled = enabled
-	update_inspector()
+	if enabled:
+		usage_flags |= PROPERTY_USAGE_SUBGROUP
+	else:
+		usage_flags &= ~PROPERTY_USAGE_SUBGROUP
 
 ## Returns [param true] if sub-group handling is enabled.
 func is_subgroup_enabled() -> bool:
-	return _subgroup_enabled
+	return usage_flags & PROPERTY_USAGE_SUBGROUP
 
 ## Return edited object.
 func get_object() -> Object:
@@ -155,26 +157,6 @@ func get_object() -> Object:
 ## Clear edited object.
 func clear() -> void:
 	self.set_object(null)
-
-## Return [param true] if property is valid.
-## Override for custom available properties.
-func is_valid_property(property: Dictionary) -> bool:
-	const PROPERTY_USAGE = PROPERTY_USAGE_SCRIPT_VARIABLE + PROPERTY_USAGE_DEFAULT
-	const PROPERTY_USAGE_ENUM = PROPERTY_USAGE + PROPERTY_USAGE_CLASS_IS_ENUM
-
-	if property["usage"] == PROPERTY_USAGE_CATEGORY:
-		return is_category_enabled()
-
-	elif property["usage"] == PROPERTY_USAGE_GROUP:
-		return is_group_enabled()
-
-	elif property["usage"] == PROPERTY_USAGE_SUBGROUP:
-		return is_subgroup_enabled()
-
-	elif property["hint"] == PROPERTY_HINT_ENUM:
-		return property["usage"] == PROPERTY_USAGE_ENUM or property["usage"] == PROPERTY_USAGE_ENUM + PROPERTY_USAGE_READ_ONLY
-
-	return property["usage"] == PROPERTY_USAGE or property["usage"] == PROPERTY_USAGE + PROPERTY_USAGE_READ_ONLY
 
 
 static func default_setter(object: Object, property: Dictionary, readonly: bool) -> Callable:
@@ -276,36 +258,68 @@ func update_inspector() -> void:
 
 		property["control"] = control
 
-# Potentially should be replaced by on-the-fly computing...
-func _update_property_list() -> void:
-	if is_instance_valid(_object):
-		_valid_properties = _object.get_property_list()
-	else:
-		_valid_properties = []
 
-	var counter: int = 0
-	# INFO: I know it's shitty code, but it works...
-	var i: int = _valid_properties.size() - 1
-	while i >= 0:
-		var property: Dictionary = _valid_properties[i]
-		if property["usage"] == PROPERTY_USAGE_SUBGROUP or property["usage"] == PROPERTY_USAGE_GROUP:
-			if counter < 1:
-				_valid_properties.remove_at(i)
+func is_valid_usage_flag(usage: int) -> bool:
+	# Check if usage includes GROUP, CATEGORY, or SUBGROUP
+	if usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP):
+		return (usage & usage_flags) == usage
 
-			counter -= 1
-		elif property["usage"] == PROPERTY_USAGE_CATEGORY:
-			if counter < 1:
-				_valid_properties.remove_at(i)
+	# Ensure usage matches EDITOR flag
+	if usage_flags & PROPERTY_USAGE_EDITOR and not (usage & PROPERTY_USAGE_EDITOR):
+		return false
 
-			counter = 0
-		elif not is_valid_property(property):
-			_valid_properties.remove_at(i)
+	# Ensure usage matches SCRIPT_VARIABLE flag
+	return not (usage_flags & PROPERTY_USAGE_SCRIPT_VARIABLE and not (usage & PROPERTY_USAGE_SCRIPT_VARIABLE))
+
+## Return [param true] if property is valid.
+## Override for custom available properties.
+func is_valid_property(property: Dictionary) -> bool:
+	return is_valid_usage_flag(property.usage) and InspectorProperty.can_handle_property(_object, property)
+
+
+func _is_section_empty(properties: Array[Dictionary], begin: int, stop_flags: int) -> bool:
+	for i in range(begin + 1, properties.size()):
+		var prop: Dictionary = properties[i]
+		if not prop.to_keep:
+			continue
+		elif prop.usage & stop_flags:
+			break
+		elif prop.usage & PROPERTY_USAGE_SUBGROUP:
+			if _is_section_empty(properties, i, PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP):
+				continue
+		elif prop.usage & PROPERTY_USAGE_GROUP:
+			if _is_section_empty(properties, i, PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP):
+				continue
 		else:
-			counter += 1
+			return false
 
-		i -= 1
+	return true
+
+func _update_property_list() -> void:
+	if not is_instance_valid(_object):
+		return
+
+	var properties: Array[Dictionary] = _object.get_property_list()
+	for prop: Dictionary in properties:
+		prop[&"to_keep"] = is_valid_property(prop)
+
+	for i in properties.size():
+		var prop: Dictionary = properties[i]
+		if not prop.to_keep:
+			continue
+		elif prop.usage & PROPERTY_USAGE_SUBGROUP:
+			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP)
+		elif prop.usage & PROPERTY_USAGE_GROUP:
+			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY)
+		elif prop.usage & PROPERTY_USAGE_CATEGORY:
+			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_CATEGORY)
+
+	_valid_properties = properties.filter(func(prop: Dictionary) -> bool:
+		return prop.erase(&"to_keep") if prop.to_keep else false
+	)
 
 	update_inspector()
+
 
 func _on_filter_text_chnaged(filter: String) -> void:
 	for property: Dictionary in _valid_properties:

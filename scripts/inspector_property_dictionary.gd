@@ -43,16 +43,13 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	self.add_child(_container)
 
 
+static func can_handle(object: Object, property: Dictionary) -> bool:
+	return property["type"] == TYPE_DICTIONARY
+
+
 static func _static_init() -> void:
-	InspectorProperty.declare_property(create_control)
+	InspectorProperty.declare_property(can_handle, InspectorPropertyDictionary.new)
 	InspectorPropertyType.register_type(TYPE_DICTIONARY, "Dictionary", create_dictionary_control)
-
-
-static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
-	if property.type == TYPE_DICTIONARY:
-		return InspectorPropertyDictionary.new(object, property, setter, getter)
-	else:
-		return null
 
 
 class InspectorPropertyTypeDictionary extends Button:

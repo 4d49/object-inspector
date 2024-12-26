@@ -48,21 +48,16 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	self.add_child(_container)
 
 
-static func is_supported_type(type: Variant.Type) -> bool:
+static func is_valid_type(type: Variant.Type) -> bool:
 	return InspectorPropertyType.is_valid_type(type)
 
-static func is_valid_array(object: Object, property: Dictionary) -> bool:
-	if property.type != TYPE_ARRAY:
-		return false
+static func can_handle(object: Object, property: Dictionary) -> bool:
+	if property["type"] == TYPE_ARRAY:
+		var array: Array = object.get(property["name"])
+		var array_type := array.get_typed_builtin()
 
-	var array: Variant = object.get(property.name)
-	if array is Array:
-		var array_type: Variant.Type = array.get_typed_builtin()
-		return array_type == TYPE_NIL or is_supported_type(array_type)
+		return array_type == TYPE_NIL or is_valid_type(array_type)
 
-	return false
-
-static func is_valid_packed_array(type: Variant.Type) -> bool:
 	const TYPE_PACKED_ARRAY: PackedByteArray = [
 		TYPE_PACKED_BYTE_ARRAY,
 		TYPE_PACKED_INT32_ARRAY,
@@ -75,17 +70,11 @@ static func is_valid_packed_array(type: Variant.Type) -> bool:
 		TYPE_PACKED_COLOR_ARRAY,
 	]
 
-	return type in TYPE_PACKED_ARRAY
-
-static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
-	if is_valid_array(object, property) or is_valid_packed_array(property.type):
-		return InspectorPropertyArray.new(object, property, setter, getter)
-	else:
-		return null
+	return TYPE_PACKED_ARRAY.has(property["type"])
 
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(create_control)
+	InspectorProperty.declare_property(InspectorPropertyArray.can_handle, InspectorPropertyArray.new)
 	InspectorPropertyType.register_type(TYPE_ARRAY, "Array", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_BYTE_ARRAY, "PackedByteArray", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_FLOAT32_ARRAY, "PackedFloat32Array", create_array_control)
