@@ -166,7 +166,12 @@ class InspectorPropertyTypeDictionary extends Button:
 		var getter: Callable = func() -> Variant:
 			return _dict[key]
 
-		var control: Control = create_control(typeof(_dict[key]), setter, getter)
+		var control: Control = null
+		if _dict.is_typed_value():
+			control = create_control(_dict.get_typed_value_builtin(), setter, getter)
+		else:
+			control = create_control(typeof(_dict[key]), setter, getter)
+
 		if not is_instance_valid(control):
 			return null
 
@@ -187,7 +192,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		container.add_child(header)
 
 		if not _is_readonly:
-			if _dict.is_typed():
+			if _dict.is_typed_value():
 				hbox.add_child(create_delete_button(key))
 			else:
 				hbox.add_child(create_edit_button(key))
@@ -315,7 +320,7 @@ class InspectorPropertyTypeDictionary extends Button:
 			_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_container.add_child(_key_label)
 
-			if _dict.is_typed():
+			if _dict.is_typed_key():
 				set_key_type(_dict.get_typed_key_builtin())
 			else:
 				_key_control = create_null_control()
