@@ -26,7 +26,8 @@ var _search_enabled := true:
 	"Group enabled:%d"        % PROPERTY_USAGE_GROUP,
 	"Subgroup enabled:%d"     % PROPERTY_USAGE_SUBGROUP,
 	"Script variable only:%d" % PROPERTY_USAGE_SCRIPT_VARIABLE,
-) var usage_flags: int = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_SCRIPT_VARIABLE
+) var usage_flags: int = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_SCRIPT_VARIABLE:
+	set = set_usage_flags
 
 
 var _object : Object = null
@@ -105,6 +106,16 @@ func set_object(object: Object) -> void:
 
 	object_changed.emit(object)
 	_update_property_list()
+
+func set_usage_flags(flags: int) -> void:
+	if usage_flags == flags:
+		return
+
+	usage_flags = flags
+	_update_property_list()
+
+func get_usage_flags() -> int:
+	return usage_flags
 
 ## Set category handling enabled.
 func set_category_enabled(enabled: bool) -> void:
