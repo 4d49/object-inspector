@@ -206,8 +206,8 @@ class InspectorPropertyTypeDictionary extends Button:
 		return _key_value
 
 	func set_key_type(type: Variant.Type) -> void:
-		if _key_type == type:
-			return
+#		if _key_type == type:
+#			return
 
 		_key_value = type_convert(null, type)
 
@@ -248,8 +248,8 @@ class InspectorPropertyTypeDictionary extends Button:
 			update_paginator()
 
 	func set_value_type(type: Variant.Type) -> void:
-		if _value_type == type:
-			return
+#		if _value_type == type:
+#			return
 
 		_value = type_convert(null, type)
 
