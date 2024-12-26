@@ -122,6 +122,17 @@ class InspectorPropertyTypeDictionary extends Button:
 
 		popup.id_pressed.connect(callable)
 
+	func create_delete_button(key: Variant) -> Button:
+		var delete := Button.new()
+		delete.set_name("Delete")
+		delete.set_button_icon(get_theme_icon(&"delete"))
+		delete.pressed.connect(func() -> void:
+			if _dict.erase(key):
+				update_paginator()
+		)
+
+		return delete
+
 	func create_edit_button(key: Variant) -> MenuButton:
 		const DELETE = -2
 
@@ -179,7 +190,10 @@ class InspectorPropertyTypeDictionary extends Button:
 		container.add_child(header)
 
 		if not _is_readonly:
-			hbox.add_child(create_edit_button(key))
+			if _dict.is_typed():
+				hbox.add_child(create_delete_button(key))
+			else:
+				hbox.add_child(create_edit_button(key))
 
 		return hbox
 
@@ -292,14 +306,17 @@ class InspectorPropertyTypeDictionary extends Button:
 			_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_container.add_child(_key_label)
 
-			_key_control = create_null_control()
-			_key_container.add_child(_key_control)
+			if _dict.is_typed():
+				set_key_type(_dict.get_typed_key_builtin())
+			else:
+				_key_control = create_null_control()
+				_key_container.add_child(_key_control)
 
-			_key_edit = MenuButton.new()
-			_key_edit.set_flat(false)
-			_key_edit.set_button_icon(get_theme_icon(&"edit"))
-			init_type_popup(_key_edit.get_popup(), set_key_type)
-			key_hbox.add_child(_key_edit)
+				_key_edit = MenuButton.new()
+				_key_edit.set_flat(false)
+				_key_edit.set_button_icon(get_theme_icon(&"edit"))
+				init_type_popup(_key_edit.get_popup(), set_key_type)
+				key_hbox.add_child(_key_edit)
 			#endregion
 
 			#region New Value
@@ -323,15 +340,18 @@ class InspectorPropertyTypeDictionary extends Button:
 			_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_value_container.add_child(_value_label)
 
-			_value_control = create_null_control()
-			_value_container.add_child(_value_control)
+			if _dict.is_typed_value():
+				set_value_type(_dict.get_typed_value_builtin())
+			else:
+				_value_control = create_null_control()
+				_value_container.add_child(_value_control)
 
-			_value_edit = MenuButton.new()
-			_value_edit.set_flat(false)
-			_value_edit.set_name("KeyEdit")
-			_value_edit.set_button_icon(get_theme_icon(&"edit"))
-			init_type_popup(_value_edit.get_popup(), set_value_type)
-			value_hbox.add_child(_value_edit)
+				_value_edit = MenuButton.new()
+				_value_edit.set_flat(false)
+				_value_edit.set_name("KeyEdit")
+				_value_edit.set_button_icon(get_theme_icon(&"edit"))
+				init_type_popup(_value_edit.get_popup(), set_value_type)
+				value_hbox.add_child(_value_edit)
 			#endregion
 
 			add_vbox.add_child(HSeparator.new())
