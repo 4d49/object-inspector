@@ -228,6 +228,9 @@ class InspectorPropertyTypeDictionary extends Button:
 	func get_value() -> Variant:
 		return _value
 
+	func update_title() -> void:
+		self.set_text(dictionary_to_text(_dict))
+
 	func set_value_type(type: Variant.Type) -> void:
 		if _value_type == type:
 			return
