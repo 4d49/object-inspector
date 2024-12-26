@@ -54,6 +54,7 @@ static func _static_init() -> void:
 
 class InspectorPropertyTypeDictionary extends Button:
 	var _dict: Dictionary = {}
+	var _dict_keys: Array = []
 	var _is_readonly: bool = false
 
 	var _vbox: VBoxContainer = null
@@ -82,7 +83,8 @@ class InspectorPropertyTypeDictionary extends Button:
 		self.set_theme_type_variation(&"InspectorPropertyDictionary")
 
 		_dict = dictionary
-		_is_readonly = readonly
+		_dict_keys = dictionary.keys()
+		_is_readonly = readonly or dictionary.is_read_only()
 
 		self.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		self.set_text(dictionary_to_text(dictionary))
@@ -95,8 +97,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		)
 
 	func update_paginator() -> void:
-		_paginator.set_element_count(_dict.size())
-		_paginator.update_elements()
+		_paginator.set_element_count(_dict.size(), true)
 
 	func create_label(key: Variant) -> Label:
 		var label := Label.new()
@@ -122,8 +123,18 @@ class InspectorPropertyTypeDictionary extends Button:
 
 		popup.id_pressed.connect(callable)
 
+	func create_delete_button(key: Variant) -> Button:
+		var delete := Button.new()
+		delete.set_name("Delete")
+		delete.set_button_icon(get_theme_icon(&"delete"))
+		delete.pressed.connect(func() -> void:
+			erase_value(key)
+		)
+
+		return delete
+
 	func create_edit_button(key: Variant) -> MenuButton:
-		const DELETE = -2
+		const DELETE = 0x100
 
 		var edit := MenuButton.new()
 		edit.set_flat(false)
@@ -131,14 +142,12 @@ class InspectorPropertyTypeDictionary extends Button:
 		edit.set_button_icon(get_theme_icon(&"edit"))
 
 		var popup: PopupMenu = edit.get_popup()
-
 		var callable: Callable = func(id: int) -> void:
 			if id == DELETE:
-				_dict.erase(key)
+				erase_value(key)
 			else:
-				_dict[key] = type_convert(null, id)
+				add_value(key, type_convert(null, id))
 
-			update_paginator()
 		init_type_popup(popup, callable)
 
 		popup.add_separator()
@@ -151,14 +160,19 @@ class InspectorPropertyTypeDictionary extends Button:
 		return InspectorPropertyType.create_control(type, setter, getter)
 
 	func create_element(index: int) -> Container:
-		var key: Variant = _dict.keys()[index]
+		var key: Variant = _dict_keys[index]
 
 		var setter: Callable = Callable() if _is_readonly else func(value: Variant) -> void:
 			_dict[key] = value
 		var getter: Callable = func() -> Variant:
 			return _dict[key]
 
-		var control: Control = create_control(typeof(_dict[key]), setter, getter)
+		var control: Control = null
+		if _dict.is_typed_value():
+			control = create_control(_dict.get_typed_value_builtin(), setter, getter)
+		else:
+			control = create_control(typeof(_dict[key]), setter, getter)
+
 		if not is_instance_valid(control):
 			return null
 
@@ -179,7 +193,10 @@ class InspectorPropertyTypeDictionary extends Button:
 		container.add_child(header)
 
 		if not _is_readonly:
-			hbox.add_child(create_edit_button(key))
+			if _dict.is_typed_value():
+				hbox.add_child(create_delete_button(key))
+			else:
+				hbox.add_child(create_edit_button(key))
 
 		return hbox
 
@@ -189,15 +206,15 @@ class InspectorPropertyTypeDictionary extends Button:
 		return _key_value
 
 	func set_key_type(type: Variant.Type) -> void:
-		if _key_type == type:
-			return
+#		if _key_type == type:
+#			return
 
 		_key_value = type_convert(null, type)
 
 		if is_instance_valid(_key_control):
 			_key_control.queue_free()
 
-		_key_control = InspectorPropertyType.create_control(type, set_key_value, get_key_value)
+		_key_control = create_control(type, set_key_value, get_key_value)
 		if is_instance_valid(_key_control):
 			_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_key_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -214,16 +231,32 @@ class InspectorPropertyTypeDictionary extends Button:
 	func get_value() -> Variant:
 		return _value
 
+	func update_title() -> void:
+		self.set_text(dictionary_to_text(_dict))
+
+	func add_value(key: Variant, value: Variant) -> void:
+		_dict.set(key, value)
+		_dict_keys = _dict.keys()
+
+		update_title()
+		update_paginator()
+	func erase_value(key: Variant) -> void:
+		if _dict.erase(key):
+			_dict_keys = _dict.keys()
+
+			update_title()
+			update_paginator()
+
 	func set_value_type(type: Variant.Type) -> void:
-		if _value_type == type:
-			return
+#		if _value_type == type:
+#			return
 
 		_value = type_convert(null, type)
 
 		if is_instance_valid(_value_control):
 			_value_control.queue_free()
 
-		_value_control = InspectorPropertyType.create_control(type, set_value, get_value)
+		_value_control = create_control(type, set_value, get_value)
 		if is_instance_valid(_value_control):
 			_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 			_value_control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
@@ -235,9 +268,15 @@ class InspectorPropertyTypeDictionary extends Button:
 	func get_value_type() -> Variant.Type:
 		return _value_type
 
+	func create_null_control() -> Control:
+		var label := Label.new()
+		label.set_text(str(null))
+		label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+
+		return label
+
 	func _on_add_pressed() -> void:
-		_dict[_key_value] = _value
-		update_paginator()
+		add_value(_key_value, _value)
 
 	func _on_button_pressed(expanded: bool) -> void:
 		if not expanded:
@@ -256,92 +295,99 @@ class InspectorPropertyTypeDictionary extends Button:
 		_paginator.set_name("Paginator")
 		paginator_panel.add_child(_paginator)
 
-		var add_panel := PanelContainer.new()
-		add_panel.set_theme_type_variation(&"InspectorSubProperty")
-		_vbox.add_child(add_panel)
+		if not _is_readonly:
+			var add_panel := PanelContainer.new()
+			add_panel.set_theme_type_variation(&"InspectorSubProperty")
+			_vbox.add_child(add_panel)
 
-		var add_vbox := VBoxContainer.new()
-		add_panel.add_child(add_vbox)
+			var add_vbox := VBoxContainer.new()
+			add_panel.add_child(add_vbox)
 
-		#region New Key
-		var key_hbox := HBoxContainer.new()
-		add_vbox.add_child(key_hbox)
+			#region New Key
+			var key_hbox := HBoxContainer.new()
+			add_vbox.add_child(key_hbox)
 
-		var key_vbox := VBoxContainer.new()
-		key_vbox.set_name("Container")
-		key_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		key_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		key_hbox.add_child(key_vbox)
+			var key_vbox := VBoxContainer.new()
+			key_vbox.set_name("Container")
+			key_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			key_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+			key_hbox.add_child(key_vbox)
 
-		_key_container = BoxContainer.new()
-		_key_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_key_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		key_vbox.add_child(_key_container)
+			_key_container = BoxContainer.new()
+			_key_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_key_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+			key_vbox.add_child(_key_container)
 
-		_key_label = Label.new()
-		_key_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-		_key_label.set_text("New Key:")
-		_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_key_container.add_child(_key_label)
+			_key_label = Label.new()
+			_key_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+			_key_label.set_text("New Key:")
+			_key_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_key_container.add_child(_key_label)
 
-		_key_control = Label.new()
-		_key_control.set_text(str(null))
-		_key_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_key_container.add_child(_key_control)
+			if _dict.is_typed_key():
+				set_key_type(_dict.get_typed_key_builtin())
+			else:
+				_key_control = create_null_control()
+				_key_container.add_child(_key_control)
 
-		_key_edit = MenuButton.new()
-		_key_edit.set_flat(false)
-		_key_edit.set_button_icon(get_theme_icon(&"edit"))
-		init_type_popup(_key_edit.get_popup(), set_key_type)
-		key_hbox.add_child(_key_edit)
-		#endregion
+				_key_edit = MenuButton.new()
+				_key_edit.set_flat(false)
+				_key_edit.set_button_icon(get_theme_icon(&"edit"))
+				init_type_popup(_key_edit.get_popup(), set_key_type)
+				key_hbox.add_child(_key_edit)
+			#endregion
 
-		#region New Value
-		var value_hbox := HBoxContainer.new()
-		add_vbox.add_child(value_hbox)
+			#region New Value
+			var value_hbox := HBoxContainer.new()
+			add_vbox.add_child(value_hbox)
 
-		var value_vbox := VBoxContainer.new()
-		value_vbox.set_name("Container")
-		value_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		value_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		value_hbox.add_child(value_vbox)
+			var value_vbox := VBoxContainer.new()
+			value_vbox.set_name("Container")
+			value_vbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			value_vbox.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+			value_hbox.add_child(value_vbox)
 
-		_value_container = BoxContainer.new()
-		_value_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_value_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		value_vbox.add_child(_value_container)
+			_value_container = BoxContainer.new()
+			_value_container.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_value_container.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+			value_vbox.add_child(_value_container)
 
-		_value_label = Label.new()
-		_value_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-		_value_label.set_text("New Value:")
-		_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_value_container.add_child(_value_label)
+			_value_label = Label.new()
+			_value_label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+			_value_label.set_text("New Value:")
+			_value_label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+			_value_container.add_child(_value_label)
 
-		_value_control = Label.new()
-		_value_control.set_text(str(null))
-		_value_control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		_value_container.add_child(_value_control)
+			if _dict.is_typed_value():
+				set_value_type(_dict.get_typed_value_builtin())
+			else:
+				_value_control = create_null_control()
+				_value_container.add_child(_value_control)
 
-		_value_edit = MenuButton.new()
-		_value_edit.set_flat(false)
-		_value_edit.set_name("KeyEdit")
-		_value_edit.set_button_icon(get_theme_icon(&"edit"))
-		init_type_popup(_value_edit.get_popup(), set_value_type)
-		value_hbox.add_child(_value_edit)
-		#endregion
+				_value_edit = MenuButton.new()
+				_value_edit.set_flat(false)
+				_value_edit.set_name("KeyEdit")
+				_value_edit.set_button_icon(get_theme_icon(&"edit"))
+				init_type_popup(_value_edit.get_popup(), set_value_type)
+				value_hbox.add_child(_value_edit)
+			#endregion
 
-		add_vbox.add_child(HSeparator.new())
+			add_vbox.add_child(HSeparator.new())
 
-		_add_button = Button.new()
-		_add_button.set_text("Add Key/Value Pair")
-		_add_button.pressed.connect(_on_add_pressed)
-		add_vbox.add_child(_add_button, false, Node.INTERNAL_MODE_BACK)
+			_add_button = Button.new()
+			_add_button.set_text("Add Key/Value Pair")
+			_add_button.pressed.connect(_on_add_pressed)
+			add_vbox.add_child(_add_button, false, Node.INTERNAL_MODE_BACK)
 
 		update_paginator()
 		find_parent("Container").add_child(_vbox)
 
-	static func dictionary_to_text(dictionary: Dictionary) -> String:
-		return "Dictionary (size %d)" % dictionary.size()
+	static func dictionary_to_text(dict: Dictionary) -> String:
+		var string: String = "Dictionary"
+		if dict.is_typed():
+			string += "[" + type_string(dict.get_typed_key_builtin()) + ", " + type_string(dict.get_typed_value_builtin()) + "]"
+
+		return string + " (size " + str(dict.size()) + ")"
 
 
 static func create_dictionary_control(setter: Callable, getter: Callable) -> InspectorPropertyTypeDictionary:

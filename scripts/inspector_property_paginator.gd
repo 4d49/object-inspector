@@ -1,7 +1,6 @@
 # Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-class_name InspectorPropertyPaginator
 extends VBoxContainer
 
 
@@ -89,9 +88,9 @@ func _enter_tree() -> void:
 	_page_last.set_button_icon(get_theme_icon(&"page_last"))
 
 
-func set_element_count(element_count: int) -> void:
+func set_element_count(element_count: int, force_update: bool = false) -> void:
 	element_count = maxi(element_count, 0)
-	if _element_count == element_count:
+	if _element_count == element_count and not force_update:
 		return
 
 	_hseparator.set_visible(element_count > PAGE_SIZE)
@@ -104,7 +103,6 @@ func set_element_count(element_count: int) -> void:
 	_page_edit.set_text(str(_current_page))
 
 	_element_count = element_count
-
 	update_elements()
 
 func get_element_count() -> int:

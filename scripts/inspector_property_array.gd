@@ -118,9 +118,7 @@ class InspectorPropertyTypeArray extends Button:
 
 	func update_paginator() -> void:
 		_size_spin.set_value_no_signal(_array.size())
-
-		_paginator.set_element_count(_array.size())
-		_paginator.update_elements()
+		_paginator.set_element_count(_array.size(), true)
 
 	func set_array_size(new_size: int) -> void:
 		if _array.size() == new_size:

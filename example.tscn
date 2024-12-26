@@ -29,6 +29,7 @@ class ExampleObject extends RefCounted:
 	}
 
 	const ARRAY_MAX_SIZE = 10_000
+	const DICT_MAX_SIZE = 1_000
 
 	@export_category(\"Simple Types\")
 
@@ -186,10 +187,21 @@ class ExampleObject extends RefCounted:
 	var packed_vector_3_readonly: PackedVector3Array = random_typed_array(Type.VECTOR_3, true)
 
 	@export_category(\"Dictionary\")
+	@export_group(\"Untyped\")
 	@export var dictionary: Dictionary = random_dict()
 
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var dictionary_readonly: Dictionary = random_dict(true)
+
+	@export_group(\"Typed\")
+	@export var dict_int_bool: Dictionary[int, bool] = random_typed_dict(Type.INT, Type.BOOL)
+	@export var dict_float_string: Dictionary[float, String] = random_typed_dict(Type.FLOAT, Type.STRING)
+
+	@export var dict_int_color: Dictionary[int, Color] = random_typed_dict(Type.INT, Type.COLOR)
+	@export var dict_string_name_color: Dictionary[StringName, Color] = random_typed_dict(Type.STRING_NAME, Type.COLOR)
+
+	@export var dict_vector2i_vector2: Dictionary[Vector2i, Vector2] = random_typed_dict(Type.VECTOR_2I, Type.VECTOR_2)
+	@export var dict_vector3i_vector3: Dictionary[Vector3i, Vector3] = random_typed_dict(Type.VECTOR_3I, Type.VECTOR_3)
 
 	static func to_builtin_type(type: Type) -> Variant.Type:
 		match type:
@@ -272,6 +284,17 @@ class ExampleObject extends RefCounted:
 
 		for t: Dictionary in InspectorPropertyType.get_type_list():
 			dict[t.name] = type_convert(null, t.type)
+
+		if readonly:
+			dict.make_read_only()
+
+		return dict
+
+	static func random_typed_dict(key_type: Type, value_type: Type, readonly: bool = false) -> Dictionary:
+		var dict := Dictionary({}, to_builtin_type(key_type), &\"\", null, to_builtin_type(value_type), &\"\", null)
+
+		for i: int in randi_range(0, DICT_MAX_SIZE):
+			dict[random_value(key_type)] = random_value(value_type)
 
 		if readonly:
 			dict.make_read_only()
