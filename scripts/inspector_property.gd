@@ -39,6 +39,18 @@ static func declare_property(validation: Callable, constructor: Callable) -> voi
 		_declarations.push_front(declaration)
 
 
+## Returns [param true] that the property can be handled.
+static func can_handle_property(object: Object, property: Dictionary) -> bool:
+	if not is_instance_valid(object):
+		return false
+
+	for declaration: Dictionary in _declarations:
+		var validation: Callable = declaration[&"validation"]
+		if validation.is_valid() and validation.call(object, property):
+			return true
+
+	return false
+
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
 static func create_property(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 	assert(is_instance_valid(object), "Invalid Object!")
