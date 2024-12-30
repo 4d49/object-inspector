@@ -43,7 +43,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	self.add_child(_container)
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(_obj: Object, property: Dictionary) -> bool:
 	return property["type"] == TYPE_DICTIONARY
 
 
@@ -134,7 +134,7 @@ class InspectorPropertyTypeDictionary extends Button:
 		return delete
 
 	func create_edit_button(key: Variant) -> MenuButton:
-		const DELETE = 0x100
+		const DELETE: int = 0x100
 
 		var edit := MenuButton.new()
 		edit.set_flat(false)
@@ -235,11 +235,11 @@ class InspectorPropertyTypeDictionary extends Button:
 		self.set_text(dictionary_to_text(_dict))
 
 	func add_value(key: Variant, value: Variant) -> void:
-		_dict.set(key, value)
-		_dict_keys = _dict.keys()
+		if _dict.set(key, value):
+			_dict_keys = _dict.keys()
 
-		update_title()
-		update_paginator()
+			update_title()
+			update_paginator()
 	func erase_value(key: Variant) -> void:
 		if _dict.erase(key):
 			_dict_keys = _dict.keys()

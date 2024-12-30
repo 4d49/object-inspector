@@ -2,8 +2,8 @@
 # See `LICENSE.md` included in the source distribution for details.
 
 # Magic numbers, but otherwise the SpinBox does not work correctly.
-const INT32_MIN = -2147483648
-const INT32_MAX =  2147483647
+const INT32_MIN: int = -2147483648
+const INT32_MAX: int =  2147483647
 
 ## Handle [annotation @GDScript.@export_category] property.
 class InspectorPropertyCategory extends InspectorProperty:
@@ -29,7 +29,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 	func _enter_tree() -> void:
 		_title.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"header"))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_CATEGORY
 
 ## Handle [annotation @GDScript.@export_group] property.
@@ -71,10 +71,10 @@ class InspectorPropertyGroup extends InspectorProperty:
 
 		toggled.emit(expanded)
 
-	func set_toggled(toggled: bool) -> void:
-		_button.set_pressed(toggled)
+	func set_toggled(value: bool) -> void:
+		_button.set_pressed(value)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_GROUP
 
 ## Handle [annotation @GDScript.@export_subgroup] property.
@@ -83,7 +83,7 @@ class InspectorPropertySubgroup extends InspectorPropertyGroup:
 		super(object, property, setter, getter)
 		self.set_theme_type_variation(&"InspectorPropertySubGroup")
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["usage"] == PROPERTY_USAGE_SUBGROUP
 
 ## Handle [bool] property.
@@ -115,7 +115,7 @@ class InspectorPropertyBool extends InspectorProperty:
 
 		return check_box
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_BOOL
 
 ## Handle [int] or [float] property.
@@ -133,8 +133,8 @@ class InspectorPropertyNumber extends InspectorProperty:
 		if property["hint"] == PROPERTY_HINT_RANGE:
 			var split: PackedStringArray = get_hint_string().split(',', false)
 
-			spin_box.set_min(split[0].to_float() if split.size() >= 1 and split[0].is_valid_float() else INT32_MIN)
-			spin_box.set_max(split[1].to_float() if split.size() >= 2 and split[1].is_valid_float() else INT32_MAX)
+			spin_box.set_min(split[0].to_float() if split.size() >= 1 and split[0].is_valid_float() else float(INT32_MIN))
+			spin_box.set_max(split[1].to_float() if split.size() >= 2 and split[1].is_valid_float() else float(INT32_MIN))
 			spin_box.set_step(split[2].to_float() if split.size() >= 3 and split[2].is_valid_float() else 1.0 if property["type"] == TYPE_INT else 0.001)
 
 		create_flow_container(property["name"], spin_box)
@@ -178,7 +178,7 @@ class InspectorPropertyNumber extends InspectorProperty:
 
 		return spin_box
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
 
 ## Handle [String] or [StringName] property.
@@ -283,7 +283,7 @@ class InspectorPropertyString extends InspectorProperty:
 		return hint == PROPERTY_HINT_FILE or hint == PROPERTY_HINT_DIR or\
 			hint == PROPERTY_HINT_GLOBAL_FILE or hint == PROPERTY_HINT_GLOBAL_DIR
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
@@ -384,7 +384,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		window_text_edit.set_text(get_value())
 		window.popup_centered_clamped(Vector2(500, 300))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
 
 ## Handle [Vector2] or [Vector2i] property.
@@ -440,9 +440,9 @@ class InspectorPropertyVector2 extends InspectorProperty:
 				x_spin.set_value_no_signal(vector2i.x)
 				y_spin.set_value_no_signal(vector2i.y)
 		else:
-			value_changed = func(_value) -> void:
+			value_changed = func(_ve) -> void:
 				setter.call(Vector2(x_spin.get_value(), y_spin.get_value()))
-				value = getter.call()
+				var vector2: Vector2 = getter.call()
 
 				x_spin.set_value_no_signal(value.x)
 				y_spin.set_value_no_signal(value.y)
@@ -458,7 +458,7 @@ class InspectorPropertyVector2 extends InspectorProperty:
 	static func create_vector2i_control(setter: Callable, getter: Callable) -> BoxContainer:
 		return _create_vector2_control(setter, getter, true)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
@@ -520,7 +520,7 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		else:
 			on_value_changed = func(_value) -> void:
 				setter.call(Vector3(x_spin.get_value(), y_spin.get_value(), z_spin.get_value()))
-				value = getter.call()
+				var vector3: Vector3 = getter.call()
 
 				x_spin.set_value_no_signal(value.x)
 				y_spin.set_value_no_signal(value.y)
@@ -538,7 +538,7 @@ class InspectorPropertyVector3 extends InspectorProperty:
 	static func create_vector3i_control(setter: Callable, getter: Callable) -> BoxContainer:
 		return _create_vector3_control(setter, getter, true)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
 
 ## Handle [Color] property.
@@ -573,7 +573,7 @@ class InspectorPropertyColor extends InspectorProperty:
 
 		return color_picker
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_COLOR
 
 ## Handle [param enum] property.
@@ -609,7 +609,7 @@ class InspectorPropertyEnum extends InspectorProperty:
 	func _on_id_pressed(id: int) -> void:
 		option_button.select(option_button.get_item_index(set_and_return_value(id)))
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
 
 ## Handle [int] property with [param @export_flags] annotation.
@@ -643,7 +643,7 @@ class InspectorPropertyFlags extends InspectorProperty:
 		var label: Label = create_flow_container(property["name"], vbox).get_node(^"Label")
 		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
-	static func can_handle(_object: Object, property: Dictionary) -> bool:
+	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
 
 
