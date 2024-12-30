@@ -203,6 +203,12 @@ class ExampleObject extends RefCounted:
 	@export var dict_vector2i_vector2: Dictionary[Vector2i, Vector2] = random_typed_dict(Type.VECTOR_2I, Type.VECTOR_2)
 	@export var dict_vector3i_vector3: Dictionary[Vector3i, Vector3] = random_typed_dict(Type.VECTOR_3I, Type.VECTOR_3)
 
+	# Example registers custom property descriptions.
+	static func _static_init() -> void:
+		Inspector.add_script_property_description(ExampleObject, \"boolean\", \"Toggleable boolean property.\")
+		Inspector.add_script_property_description(ExampleObject, \"boolean_readonly\", \"Read-only boolean property.\")
+		# Additional properties can be registered similarly as needed.
+
 	static func to_builtin_type(type: Type) -> Variant.Type:
 		match type:
 			Type.BOOL:
@@ -335,12 +341,14 @@ func _on_helper_pressed() -> void:
 		TYPE_STRING,
 		PropertyHelper.dictionary_setter(data, &\"name\"),
 		PropertyHelper.dictionary_getter(data, &\"name\"),
+		\"[b]Item Name:[/b]\\n[i]A unique name to identify the item (e.g., 'Iron Sword').[/i]\"
 	)
 	property_helper.add_property(
 		\"description\",
 		TYPE_STRING,
 		PropertyHelper.dictionary_setter(data, &\"description\"),
 		PropertyHelper.dictionary_getter(data, &\"description\"),
+		\"[b]Item Description:[/b]\\n[i]Details about the item, like its purpose or lore.[/i]\",
 		PROPERTY_HINT_MULTILINE_TEXT,
 	)
 	property_helper.add_property(
@@ -348,6 +356,7 @@ func _on_helper_pressed() -> void:
 		TYPE_INT,
 		PropertyHelper.dictionary_setter(data, &\"price\"),
 		PropertyHelper.dictionary_getter(data, &\"price\"),
+		\"[b]Item Price:[/b]\\n[i]The item's value in in-game currency (e.g., '150 gold').[/i]\",
 		PROPERTY_HINT_RANGE,
 		PropertyHelper.range_to_hint_string(0, 9999, 1),
 	)
@@ -356,6 +365,7 @@ func _on_helper_pressed() -> void:
 		TYPE_FLOAT,
 		PropertyHelper.dictionary_setter(data, &\"rating\"),
 		PropertyHelper.dictionary_getter(data, &\"rating\"),
+		\"[b]Item Rating:[/b]\\n[i]A float between [color=blue]0.0[/color] and [color=blue]5.0[/color] showing quality (e.g., '4.5').[/i]\",
 		PROPERTY_HINT_RANGE,
 		PropertyHelper.range_to_hint_string(0, 5, 0.01),
 	)
@@ -364,10 +374,11 @@ func _on_helper_pressed() -> void:
 		TYPE_COLOR,
 		PropertyHelper.dictionary_setter(data, &\"color\"),
 		PropertyHelper.dictionary_getter(data, &\"color\"),
+		\"[b]Item Color:[/b]\\n[i]The item's color.[/i]\",
 		PROPERTY_HINT_COLOR_NO_ALPHA,
 	)
-
 	property_helper.property_changed.connect(prints)
+
 	inspector.set_object(property_helper)
 "
 
