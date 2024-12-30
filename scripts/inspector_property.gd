@@ -126,7 +126,7 @@ func get_hint() -> PropertyHint:
 func get_hint_string() -> String:
 	return _hint_string
 
-func get_usage() -> PropertyUsageFlags:
+func get_usage() -> int:
 	return _usage
 
 
