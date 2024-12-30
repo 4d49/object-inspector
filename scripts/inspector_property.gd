@@ -51,6 +51,15 @@ static func can_handle_property(object: Object, property: Dictionary) -> bool:
 
 	return false
 
+
+static func get_property_description(object: Object, property: StringName) -> String:
+	const METHOD_NAME: StringName = &"get_property_description"
+
+	if object.has_method(METHOD_NAME):
+		return object.call(METHOD_NAME, property)
+
+	return Inspector.get_object_property_description(object, property)
+
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
 static func create_property(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 	assert(is_instance_valid(object), "Invalid Object!")
@@ -69,7 +78,7 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
 			control.set_name(property["name"])
-			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
+			control.set_tooltip_text(get_property_description(object, property.name))
 
 			return control
 
