@@ -114,6 +114,19 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	_getter = getter
 
 
+func _make_custom_tooltip(for_text: String) -> Object:
+	if for_text.is_empty():
+		return null
+
+	var rich_text := RichTextLabel.new()
+	rich_text.set_fit_content(true)
+	rich_text.set_autowrap_mode(TextServer.AUTOWRAP_OFF)
+	rich_text.add_theme_stylebox_override("normal", get_theme_stylebox("panel", "TooltipPanel"))
+	rich_text.append_text(for_text)
+
+	return rich_text
+
+
 func get_object() -> Object:
 	return _object
 
