@@ -51,6 +51,15 @@ static func can_handle_property(object: Object, property: Dictionary) -> bool:
 
 	return false
 
+
+static func get_property_description(object: Object, property: StringName) -> String:
+	const METHOD_NAME: StringName = &"get_property_description"
+
+	if object.has_method(METHOD_NAME):
+		return object.call(METHOD_NAME, property)
+
+	return Inspector.get_object_property_description(object, property)
+
 ## Create and returns a [Control] node for a property. If property is not supported returns [param null].
 static func create_property(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 	assert(is_instance_valid(object), "Invalid Object!")
@@ -69,7 +78,7 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
 			control.set_name(property["name"])
-			control.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
+			control.set_tooltip_text(get_property_description(object, property.name))
 
 			return control
 
@@ -105,6 +114,19 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	_getter = getter
 
 
+func _make_custom_tooltip(for_text: String) -> Object:
+	if for_text.is_empty():
+		return null
+
+	var rich_text := RichTextLabel.new()
+	rich_text.set_fit_content(true)
+	rich_text.set_autowrap_mode(TextServer.AUTOWRAP_OFF)
+	rich_text.add_theme_stylebox_override("normal", get_theme_stylebox("panel", "TooltipPanel"))
+	rich_text.append_text(for_text)
+
+	return rich_text
+
+
 func get_object() -> Object:
 	return _object
 
@@ -126,7 +148,7 @@ func get_hint() -> PropertyHint:
 func get_hint_string() -> String:
 	return _hint_string
 
-func get_usage() -> PropertyUsageFlags:
+func get_usage() -> int:
 	return _usage
 
 
@@ -149,7 +171,7 @@ func set_and_return_value(new_value: Variant) -> Variant:
 
 ## Returns created child [FlowContainer] node with [Label] and custom [Control] as children.
 func create_flow_container(title: String, control: Control, parent: Control = self) -> FlowContainer:
-	const MINIMUM_SIZE = Vector2(96.0, 16.0)
+	const MINIMUM_SIZE: Vector2 = Vector2(96.0, 16.0)
 
 	var container := FlowContainer.new()
 	container.set_name("Container")
@@ -178,5 +200,6 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 	return container
 
 ## Return [param true] if [InspectorProperty] can handle the object and property.
+@warning_ignore("unused_parameter")
 static func can_handle(object: Object, property: Dictionary) -> bool:
 	return false

@@ -12,6 +12,7 @@ var _setter_map: Dictionary[StringName, Callable] = {}
 var _getter_map: Dictionary[StringName, Callable] = {}
 
 var _property_list: Array[Dictionary] = []
+var _property_description: Dictionary[StringName, String] = {}
 
 
 func _set(property: StringName, value: Variant) -> bool:
@@ -56,19 +57,27 @@ static func create_property(
 	return property
 
 
-func add_category(name: String) -> void:
-	_property_list.push_back(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY))
+func _add_property(property: Dictionary, description: String) -> bool:
+	if _property_description.has(property.name):
+		return false
+
+	_property_list.push_back(property)
+	_property_description[property.name] = description
+
 	property_list_changed.emit()
 
+	return true
 
-func add_group(name: String) -> void:
-	_property_list.push_back(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_GROUP))
-	property_list_changed.emit()
+func add_category(name: String, description: String = "") -> void:
+	_add_property(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_CATEGORY), description)
 
 
-func add_subgroup(name: String) -> void:
-	_property_list.push_back(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_SUBGROUP))
-	property_changed.emit()
+func add_group(name: String, description: String = "") -> void:
+	_add_property(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_GROUP), description)
+
+
+func add_subgroup(name: String, description: String = "") -> void:
+	_add_property(create_property(name, TYPE_NIL, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_SUBGROUP), description)
 
 
 func add_property(
@@ -76,6 +85,7 @@ func add_property(
 		type: Variant.Type,
 		setter: Callable,
 		getter: Callable,
+		description: String = "",
 		hint: PropertyHint = PROPERTY_HINT_NONE,
 		hint_string: String = "",
 		usage: int = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SCRIPT_VARIABLE,
@@ -87,10 +97,11 @@ func add_property(
 	_setter_map[name] = setter
 	_getter_map[name] = getter
 
-	_property_list.push_back(create_property(name, type, hint, hint_string, usage))
-	property_list_changed.emit()
+	return _add_property(create_property(name, type, hint, hint_string, usage), description)
 
-	return true
+
+func get_property_description(property: StringName) -> String:
+	return _property_description.get(property, "")
 
 ## Returns [Callable] to set the value of the object property.
 static func object_setter(object: Object, property: StringName) -> Callable:
