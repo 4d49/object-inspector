@@ -11,12 +11,12 @@ signal object_changed(object: Object)
 
 
 @export
-var _readonly := false:
+var _readonly: bool = false:
 	set = set_readonly,
 	get = is_readonly
 
 @export
-var _search_enabled := true:
+var _search_enabled: bool = true:
 	set = set_search_enabled,
 	get = is_search_enabled
 
@@ -96,7 +96,7 @@ func set_object(object: Object) -> void:
 		_object.property_list_changed.disconnect(_update_property_list)
 
 	if is_instance_valid(object) and not object.property_list_changed.is_connected(_update_property_list):
-		var error: Error = object.property_list_changed.connect(_update_property_list)
+		var error: int = object.property_list_changed.connect(_update_property_list)
 		assert(error == OK, error_string(error))
 
 	_object = object
@@ -170,8 +170,6 @@ static func default_getter(object: Object, property: Dictionary) -> Callable:
 
 ## Return [Control] for property.
 func create_property_control(object: Object, property: Dictionary) -> Control:
-	var readonly: bool = is_readonly() or property["usage"] & PROPERTY_USAGE_READ_ONLY
-
 	var setter: Callable = default_setter(object, property, is_readonly())
 	var getter: Callable = default_getter(object, property)
 
@@ -278,7 +276,7 @@ func is_valid_property(property: Dictionary) -> bool:
 
 
 func _is_section_empty(properties: Array[Dictionary], begin: int, stop_flags: int) -> bool:
-	for i in range(begin + 1, properties.size()):
+	for i: int in range(begin + 1, properties.size()):
 		var prop: Dictionary = properties[i]
 		if not prop.to_keep:
 			continue
@@ -303,7 +301,7 @@ func _update_property_list() -> void:
 	for prop: Dictionary in properties:
 		prop[&"to_keep"] = is_valid_property(prop)
 
-	for i in properties.size():
+	for i: int in properties.size():
 		var prop: Dictionary = properties[i]
 		if not prop.to_keep:
 			continue

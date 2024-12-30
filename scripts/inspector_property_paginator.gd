@@ -96,7 +96,7 @@ func set_element_count(element_count: int, force_update: bool = false) -> void:
 	_hseparator.set_visible(element_count > PAGE_SIZE)
 	_footer.set_visible(_hseparator.is_visible())
 
-	_page_count = float(element_count - 1) / PAGE_SIZE
+	_page_count = floori(float(element_count - 1) / PAGE_SIZE)
 	_page_label.set_text("/ %d" % _page_count)
 
 	_current_page = clampi(_current_page, 0, _page_count)
