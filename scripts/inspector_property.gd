@@ -158,7 +158,7 @@ func set_and_return_value(new_value: Variant) -> Variant:
 
 ## Returns created child [FlowContainer] node with [Label] and custom [Control] as children.
 func create_flow_container(title: String, control: Control, parent: Control = self) -> FlowContainer:
-	const MINIMUM_SIZE = Vector2(96.0, 16.0)
+	const MINIMUM_SIZE: Vector2 = Vector2(96.0, 16.0)
 
 	var container := FlowContainer.new()
 	container.set_name("Container")
@@ -187,5 +187,6 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 	return container
 
 ## Return [param true] if [InspectorProperty] can handle the object and property.
+@warning_ignore("unused_parameter")
 static func can_handle(object: Object, property: Dictionary) -> bool:
 	return false
