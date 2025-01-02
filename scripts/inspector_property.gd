@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
+# Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
 ## Base InspectorProperty class.
@@ -121,7 +121,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	var rich_text := RichTextLabel.new()
 	rich_text.set_fit_content(true)
 	rich_text.set_autowrap_mode(TextServer.AUTOWRAP_OFF)
-	rich_text.add_theme_stylebox_override("normal", get_theme_stylebox("panel", "TooltipPanel"))
+	rich_text.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"panel", &"TooltipPanel"))
 	rich_text.append_text(for_text)
 
 	return rich_text
