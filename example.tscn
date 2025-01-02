@@ -4,9 +4,10 @@
 [ext_resource type="Script" uid="uid://bqyqbwhc5tmoa" path="res://addons/object-inspector/scripts/inspector.gd" id="2_fnmlx"]
 
 [sub_resource type="GDScript" id="example_script"]
-script/source = "# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
+script/source = "# Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
+@tool
 extends PanelContainer
 
 
@@ -203,6 +204,13 @@ class ExampleObject extends RefCounted:
 	@export var dict_vector2i_vector2: Dictionary[Vector2i, Vector2] = random_typed_dict(Type.VECTOR_2I, Type.VECTOR_2)
 	@export var dict_vector3i_vector3: Dictionary[Vector3i, Vector3] = random_typed_dict(Type.VECTOR_3I, Type.VECTOR_3)
 
+	@export_category(\"Buttons\")
+	@export_tool_button(\"Random int\") var random_int: Callable = func() -> void:
+		print(randi())
+
+	@export_tool_button(\"Random float\") var random_float := func() -> void:
+		print(randf())
+
 	# Example registers custom property descriptions.
 	static func _static_init() -> void:
 		Inspector.add_script_property_description(ExampleObject, \"boolean\", \"Toggleable boolean property.\")
@@ -335,7 +343,6 @@ func _on_helper_pressed() -> void:
 
 	var property_helper := PropertyHelper.new()
 	property_helper.add_category(\"PropertyHelper\")
-
 	property_helper.add_property(
 		\"name\",
 		TYPE_STRING,
@@ -377,6 +384,21 @@ func _on_helper_pressed() -> void:
 		\"[b]Item Color:[/b]\\n[i]The item's color.[/i]\",
 		PROPERTY_HINT_COLOR_NO_ALPHA,
 	)
+
+	property_helper.add_category(\"Buttons\")
+	property_helper.add_button(
+		\"Random int\",
+		func(): print(randi()),
+		\"\",
+		\"Prints random integer\"
+	)
+	property_helper.add_button(
+		\"Print Time\",
+		func(): print(Time.get_time_string_from_system()),
+		\"res://addons/object-inspector/icons/inspector.svg\",
+		\"Prints current system time\"
+	)
+
 	property_helper.property_changed.connect(prints)
 
 	inspector.set_object(property_helper)
