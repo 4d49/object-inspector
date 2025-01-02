@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
+# Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
 class_name PropertyHelper
@@ -98,6 +98,16 @@ func add_property(
 	_getter_map[name] = getter
 
 	return _add_property(create_property(name, type, hint, hint_string, usage), description)
+
+
+func add_button(name: String, callable: Callable, icon_path: String = "", description: String = "") -> bool:
+	# To avoid breaking compatibility with other code,
+	# we create a pseudo setter and getter.
+	var setter: Callable = Callable()
+	var getter: Callable = func() -> Callable:
+		return callable
+
+	return add_property(name, TYPE_CALLABLE, setter, getter, description, PROPERTY_HINT_TOOL_BUTTON, name + "," + icon_path)
 
 
 func get_property_description(property: StringName) -> String:
