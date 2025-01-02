@@ -91,7 +91,7 @@ func add_property(
 		usage: int = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SCRIPT_VARIABLE,
 	) -> bool:
 
-	if _setter_map.has(name):
+	if name.is_empty() or _setter_map.has(name):
 		return false
 
 	_setter_map[name] = setter
