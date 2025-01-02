@@ -72,7 +72,7 @@ static func _static_init() -> void:
 ```
 
 # License
-Copyright (c) 2022-2024 Mansur Isaev and contributors
+Copyright (c) 2022-2025 Mansur Isaev and contributors
 
 Unless otherwise specified, files in this repository are licensed under the
 MIT license. See [LICENSE.md](LICENSE.md) for more information.
