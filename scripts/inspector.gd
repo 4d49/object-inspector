@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Mansur Isaev and contributors - MIT License
+# Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
 @tool
@@ -162,8 +162,8 @@ func clear() -> void:
 static func default_setter(object: Object, property: Dictionary, readonly: bool) -> Callable:
 	if readonly or property.usage & PROPERTY_USAGE_READ_ONLY:
 		return Callable()
-	else:
-		return PropertyHelper.object_setter(object, property.name)
+
+	return PropertyHelper.object_setter(object, property.name)
 
 static func default_getter(object: Object, property: Dictionary) -> Callable:
 	return PropertyHelper.object_getter(object, property.name)
