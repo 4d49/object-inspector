@@ -14,11 +14,11 @@ In-game property inspector for Godot 4.4+
 - Enum
 - Flags
 - Typed/Untyped Arrays and PackedArrays
-- Dictionary
+- Typed/Untyped Dictionaries
 - Category, Group and Subgroup
 
 # Installation:
-1. `git clone` this repository to `addons` folder.
+1. `git clone` this repository to the `addons` folder or download the latest [release](https://github.com/4d49/object-inspector/releases/latest/download/object-inspector.zip).
 2. Enabled `Object Inspector` in Plugins.
 
 # Usage:
@@ -43,25 +43,28 @@ func _ready() -> void:
 
 ## Custom property description:
 ```gdscript
-# Some script.gd...
-static func _static_init() -> void:
-	Inspector.add_description("ClassName", "some_value", "Property description.")
+class Item extends Object:
+	@export var cost: int
+
+	static func _static_init() -> void:
+		Inspector.add_script_property_description(Item, "cost", "The item's value in in-game currency")
 ```
 
 ## Declare custom property:
 ```gdscript
 # Validation method must return `true` if the property can be handled. Example:
-static func can_handle(object: Object, property: Dictionary, editable: bool) -> bool:
+static func can_handle(object: Object, property: Dictionary) -> bool:
 	return property["type"] == TYPE_FLOAT
 
 # Constructor method must return an object of class `Control`.
-static func create_control(object: Object, property: Dictionary, editable: bool, setter: Callable, getter: Callable) -> Control:
+static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
 	var spin_box := SpinBox.new()
-	spin_box.set_editable(editable)
 	spin_box.set_value_no_signal(getter.call())
-	# Assign custom property description.
-	spin_box.set_tooltip_text(Inspector.get_object_property_description(object, property["name"]))
-	spin_box.value_changed.connect(setter)
+
+	if setter.is_valid():
+		spin_box.value_changed.connect(setter)
+	else:
+		spin_box.set_editable(false)
 
 	return spin_box
 
