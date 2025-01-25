@@ -250,17 +250,21 @@ class InspectorPropertyString extends InspectorProperty:
 		choose_file.pressed.connect(func() -> void:
 			var file_dialog := FileDialog.new()
 
-			match hint:
-				PROPERTY_HINT_FILE, PROPERTY_HINT_GLOBAL_FILE:
-					file_dialog.set_access(FileDialog.ACCESS_RESOURCES if hint == PROPERTY_HINT_FILE else FileDialog.ACCESS_FILESYSTEM)
-					file_dialog.set_current_path(get_value())
+			if is_hint_dir(hint):
+				file_dialog.set_access(FileDialog.ACCESS_RESOURCES if hint == PROPERTY_HINT_DIR else FileDialog.ACCESS_FILESYSTEM)
+				file_dialog.set_current_dir(get_value())
+				file_dialog.set_file_mode(FileDialog.FILE_MODE_OPEN_DIR)
+				file_dialog.dir_selected.connect(setter)
+			else:
+				file_dialog.set_access(FileDialog.ACCESS_RESOURCES if hint == PROPERTY_HINT_FILE else FileDialog.ACCESS_FILESYSTEM)
+				file_dialog.set_current_path(get_value())
+
+				if is_hint_file_save(hint):
+					file_dialog.set_file_mode(FileDialog.FILE_MODE_SAVE_FILE)
+				else:
 					file_dialog.set_file_mode(FileDialog.FILE_MODE_OPEN_FILE)
-					file_dialog.file_selected.connect(setter)
-				_:
-					file_dialog.set_access(FileDialog.ACCESS_RESOURCES if hint == PROPERTY_HINT_DIR else FileDialog.ACCESS_FILESYSTEM)
-					file_dialog.set_current_dir(get_value())
-					file_dialog.set_file_mode(FileDialog.FILE_MODE_OPEN_DIR)
-					file_dialog.dir_selected.connect(setter)
+
+				file_dialog.file_selected.connect(setter)
 
 			file_dialog.add_filter(hint_string)
 			# Free after hide.
@@ -315,9 +319,23 @@ class InspectorPropertyString extends InspectorProperty:
 	static func create_string_name_control(setter: Callable, getter: Callable) -> LineEdit:
 		return _create_line_edit(setter, getter, true)
 
+	static func is_hint_dir(hint: PropertyHint) -> bool:
+		return hint == PROPERTY_HINT_DIR or hint == PROPERTY_HINT_GLOBAL_DIR
+
+	static func is_hint_file_save(hint: PropertyHint) -> bool:
+		return hint == PROPERTY_HINT_SAVE_FILE or PROPERTY_HINT_GLOBAL_SAVE_FILE
+
 	static func is_hint_file_or_dir(hint: PropertyHint) -> bool:
-		return hint == PROPERTY_HINT_FILE or hint == PROPERTY_HINT_DIR or\
-			hint == PROPERTY_HINT_GLOBAL_FILE or hint == PROPERTY_HINT_GLOBAL_DIR
+		const FILE_OR_DIR_HINTS: PackedInt32Array = [
+				PROPERTY_HINT_FILE,
+				PROPERTY_HINT_DIR,
+				PROPERTY_HINT_GLOBAL_FILE,
+				PROPERTY_HINT_GLOBAL_DIR,
+				PROPERTY_HINT_SAVE_FILE,
+				PROPERTY_HINT_GLOBAL_SAVE_FILE
+			]
+
+		return hint in FILE_OR_DIR_HINTS
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
