@@ -31,7 +31,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	var label := Label.new()
 	label.set_name("Label")
 	label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-	label.set_text(String(property["name"]).capitalize())
+	label.set_text(String(property.name).capitalize())
 	label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
 	label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 	label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
@@ -52,8 +52,8 @@ static func is_valid_type(type: Variant.Type) -> bool:
 	return InspectorPropertyType.is_valid_type(type)
 
 static func can_handle(object: Object, property: Dictionary) -> bool:
-	if property["type"] == TYPE_ARRAY:
-		var array: Array = object.get(property["name"])
+	if property.type == TYPE_ARRAY:
+		var array: Array = object.get(property.name)
 		var array_type := array.get_typed_builtin()
 
 		return array_type == TYPE_NIL or is_valid_type(array_type)
@@ -70,7 +70,7 @@ static func can_handle(object: Object, property: Dictionary) -> bool:
 		TYPE_PACKED_COLOR_ARRAY,
 	]
 
-	return TYPE_PACKED_ARRAY.has(property["type"])
+	return TYPE_PACKED_ARRAY.has(property.type)
 
 
 static func _static_init() -> void:
@@ -182,7 +182,7 @@ class InspectorPropertyTypeArray extends Button:
 		var popup: PopupMenu = edit.get_popup()
 
 		for type: Dictionary in InspectorPropertyType.get_type_list():
-			popup.add_item(type["name"], type["type"])
+			popup.add_item(type.name, type.type)
 
 		popup.add_separator()
 		popup.add_item("Delete", DELETE)
