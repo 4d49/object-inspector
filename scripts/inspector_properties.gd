@@ -6,13 +6,13 @@ const INT32_MIN: int = -2147483648
 const INT32_MAX: int =  2147483647
 
 ## Handle [annotation @GDScript.@export_category] property.
-class InspectorPropertyCategory extends InspectorProperty:
+class PropertyHandlerCategory extends PropertyHandler:
 	var _container: VBoxContainer = null
 	var _title: Label = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
-		self.set_theme_type_variation(&"InspectorPropertyCategory")
+		self.set_theme_type_variation(&"PropertyHandlerCategory")
 
 		_container = VBoxContainer.new()
 		self.set_meta(&"property_container", _container)
@@ -33,7 +33,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 		return property.usage == PROPERTY_USAGE_CATEGORY
 
 ## Handle [annotation @GDScript.@export_group] property.
-class InspectorPropertyGroup extends InspectorProperty:
+class PropertyHandlerGroup extends PropertyHandler:
 	signal toggled(expanded: bool)
 
 	var _container: VBoxContainer = null
@@ -41,7 +41,7 @@ class InspectorPropertyGroup extends InspectorProperty:
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
-		self.set_theme_type_variation(&"InspectorPropertyGroup")
+		self.set_theme_type_variation(&"PropertyHandlerGroup")
 
 		var vbox := VBoxContainer.new()
 
@@ -78,16 +78,16 @@ class InspectorPropertyGroup extends InspectorProperty:
 		return property.usage == PROPERTY_USAGE_GROUP
 
 ## Handle [annotation @GDScript.@export_subgroup] property.
-class InspectorPropertySubgroup extends InspectorPropertyGroup:
+class PropertyHandlerSubgroup extends PropertyHandlerGroup:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
-		self.set_theme_type_variation(&"InspectorPropertySubGroup")
+		self.set_theme_type_variation(&"PropertyHandlerSubGroup")
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
 		return property.usage == PROPERTY_USAGE_SUBGROUP
 
 ## Handle [annotation @GDScript.@export_tool_button] property.
-class InspectorPropertyButton extends InspectorProperty:
+class PropertyHandlerButton extends PropertyHandler:
 	var button: Button = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -95,7 +95,7 @@ class InspectorPropertyButton extends InspectorProperty:
 
 		button = Button.new()
 		button.set_tooltip_text(get_property_description(object, property.name))
-		button.set_theme_type_variation(&"InspectorPropertyButton")
+		button.set_theme_type_variation(&"PropertyHandlerButton")
 
 		var hint_split: PackedStringArray = String(property.hint_string).split(',')
 		button.set_text(get_button_text(property.name, hint_split))
@@ -123,7 +123,7 @@ class InspectorPropertyButton extends InspectorProperty:
 		return null
 
 ## Handle [bool] property.
-class InspectorPropertyBool extends InspectorProperty:
+class PropertyHandlerBool extends PropertyHandler:
 	var check_box: CheckBox = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -155,7 +155,7 @@ class InspectorPropertyBool extends InspectorProperty:
 		return property.type == TYPE_BOOL
 
 ## Handle [int] or [float] property.
-class InspectorPropertyNumber extends InspectorProperty:
+class PropertyHandlerNumber extends PropertyHandler:
 	var spin_box: SpinBox = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -218,7 +218,7 @@ class InspectorPropertyNumber extends InspectorProperty:
 		return property.type == TYPE_INT or property.type == TYPE_FLOAT
 
 ## Handle [String] or [StringName] property.
-class InspectorPropertyString extends InspectorProperty:
+class PropertyHandlerString extends PropertyHandler:
 	var line_edit: LineEdit = null
 	var choose_file: Button = null
 
@@ -341,7 +341,7 @@ class InspectorPropertyString extends InspectorProperty:
 		return property.type == TYPE_STRING or property.type == TYPE_STRING_NAME
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
-class InspectorPropertyMultiline extends InspectorProperty:
+class PropertyHandlerMultiline extends PropertyHandler:
 	var text_edit: TextEdit = null
 	var maximize: Button = null
 
@@ -442,7 +442,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		return property.hint == PROPERTY_HINT_MULTILINE_TEXT and (property.type == TYPE_STRING or property.type == TYPE_STRING_NAME)
 
 ## Handle [Vector2] or [Vector2i] property.
-class InspectorPropertyVector2 extends InspectorProperty:
+class PropertyHandlerVector2 extends PropertyHandler:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 
@@ -516,7 +516,7 @@ class InspectorPropertyVector2 extends InspectorProperty:
 		return property.type == TYPE_VECTOR2 or property.type == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
-class InspectorPropertyVector3 extends InspectorProperty:
+class PropertyHandlerVector3 extends PropertyHandler:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 
@@ -596,7 +596,7 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		return property.type == TYPE_VECTOR3 or property.type == TYPE_VECTOR3I
 
 ## Handle [Color] property.
-class InspectorPropertyColor extends InspectorProperty:
+class PropertyHandlerColor extends PropertyHandler:
 	var color_picker: ColorPickerButton = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -631,7 +631,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		return property.type == TYPE_COLOR
 
 ## Handle [param enum] property.
-class InspectorPropertyEnum extends InspectorProperty:
+class PropertyHandlerEnum extends PropertyHandler:
 	var option_button: OptionButton = null
 
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
@@ -667,7 +667,7 @@ class InspectorPropertyEnum extends InspectorProperty:
 		return property.hint == PROPERTY_HINT_ENUM and property.type == TYPE_INT
 
 ## Handle [int] property with [param @export_flags] annotation.
-class InspectorPropertyFlags extends InspectorProperty:
+class PropertyHandlerFlags extends PropertyHandler:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 
@@ -702,16 +702,16 @@ class InspectorPropertyFlags extends InspectorProperty:
 
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(InspectorPropertyCategory.can_handle, InspectorPropertyCategory.new)
-	InspectorProperty.declare_property(InspectorPropertyGroup.can_handle, InspectorPropertyGroup.new)
-	InspectorProperty.declare_property(InspectorPropertySubgroup.can_handle, InspectorPropertySubgroup.new)
-	InspectorProperty.declare_property(InspectorPropertyButton.can_handle, InspectorPropertyButton.new)
-	InspectorProperty.declare_property(InspectorPropertyBool.can_handle, InspectorPropertyBool.new)
-	InspectorProperty.declare_property(InspectorPropertyNumber.can_handle, InspectorPropertyNumber.new)
-	InspectorProperty.declare_property(InspectorPropertyString.can_handle, InspectorPropertyString.new)
-	InspectorProperty.declare_property(InspectorPropertyMultiline.can_handle, InspectorPropertyMultiline.new)
-	InspectorProperty.declare_property(InspectorPropertyVector2.can_handle, InspectorPropertyVector2.new)
-	InspectorProperty.declare_property(InspectorPropertyVector3.can_handle, InspectorPropertyVector3.new)
-	InspectorProperty.declare_property(InspectorPropertyColor.can_handle, InspectorPropertyColor.new)
-	InspectorProperty.declare_property(InspectorPropertyEnum.can_handle, InspectorPropertyEnum.new)
-	InspectorProperty.declare_property(InspectorPropertyFlags.can_handle, InspectorPropertyFlags.new)
+	PropertyHandler.declare_property(PropertyHandlerCategory.can_handle, PropertyHandlerCategory.new)
+	PropertyHandler.declare_property(PropertyHandlerGroup.can_handle, PropertyHandlerGroup.new)
+	PropertyHandler.declare_property(PropertyHandlerSubgroup.can_handle, PropertyHandlerSubgroup.new)
+	PropertyHandler.declare_property(PropertyHandlerButton.can_handle, PropertyHandlerButton.new)
+	PropertyHandler.declare_property(PropertyHandlerBool.can_handle, PropertyHandlerBool.new)
+	PropertyHandler.declare_property(PropertyHandlerNumber.can_handle, PropertyHandlerNumber.new)
+	PropertyHandler.declare_property(PropertyHandlerString.can_handle, PropertyHandlerString.new)
+	PropertyHandler.declare_property(PropertyHandlerMultiline.can_handle, PropertyHandlerMultiline.new)
+	PropertyHandler.declare_property(PropertyHandlerVector2.can_handle, PropertyHandlerVector2.new)
+	PropertyHandler.declare_property(PropertyHandlerVector3.can_handle, PropertyHandlerVector3.new)
+	PropertyHandler.declare_property(PropertyHandlerColor.can_handle, PropertyHandlerColor.new)
+	PropertyHandler.declare_property(PropertyHandlerEnum.can_handle, PropertyHandlerEnum.new)
+	PropertyHandler.declare_property(PropertyHandlerFlags.can_handle, PropertyHandlerFlags.new)

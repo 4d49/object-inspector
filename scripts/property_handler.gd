@@ -1,8 +1,8 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Base InspectorProperty class.
-class_name InspectorProperty
+## Base PropertyHandler class.
+class_name PropertyHandler
 extends PanelContainer
 
 
@@ -12,7 +12,7 @@ static var _declarations: Array[Dictionary] = []
 ## [codeblock]
 ## # Some script.gd...
 ## static func _static_init() -> void:
-##   InspectorProperty.declare_property(can_handle, create_control)
+##   PropertyHandler.declare_property(can_handle, create_control)
 ## [/codeblock]
 ## [param Validator] must receive three arguments [Object] and [Dictionary]. And it must return [param true] if the property can be handled. Example:
 ## [codeblock]static func can_handle(object: Object, property: Dictionary) -> bool:
@@ -99,7 +99,7 @@ var _getter: Callable
 
 
 func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	self.set_theme_type_variation(&"InspectorProperty")
+	self.set_theme_type_variation(&"PropertyHandler")
 
 	_object = object
 
@@ -199,7 +199,7 @@ func create_flow_container(title: String, control: Control, parent: Control = se
 	parent.add_child(container)
 	return container
 
-## Return [param true] if [InspectorProperty] can handle the object and property.
+## Return [param true] if [PropertyHandler] can handle the object and property.
 @warning_ignore("unused_parameter")
 static func can_handle(object: Object, property: Dictionary) -> bool:
 	return false

@@ -173,7 +173,7 @@ func create_property_control(object: Object, property: Dictionary) -> Control:
 	var setter: Callable = default_setter(object, property, is_readonly())
 	var getter: Callable = default_getter(object, property)
 
-	return InspectorProperty.create_property(object, property, setter, getter)
+	return PropertyHandler.create_property(object, property, setter, getter)
 
 ## Update Inspector properties.
 func update_inspector() -> void:
@@ -272,7 +272,7 @@ func is_valid_usage_flag(usage: int) -> bool:
 ## Return [param true] if property is valid.
 ## Override for custom available properties.
 func is_valid_property(property: Dictionary) -> bool:
-	return is_valid_usage_flag(property.usage) and InspectorProperty.can_handle_property(_object, property)
+	return is_valid_usage_flag(property.usage) and PropertyHandler.can_handle_property(_object, property)
 
 
 func _is_section_empty(properties: Array[Dictionary], begin: int, stop_flags: int) -> bool:
