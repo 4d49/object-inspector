@@ -298,8 +298,13 @@ func _update_property_list() -> void:
 		return
 
 	var properties: Array[Dictionary] = _object.get_property_list()
-	for prop: Dictionary in properties:
-		prop[&"to_keep"] = is_valid_property(prop)
+
+	for i: int in properties.size():
+		# Convert our property dict to typed.
+		var prop: Dictionary[StringName, Variant] = Dictionary(properties[i], TYPE_STRING_NAME, &"", null, TYPE_NIL, &"", null)
+		prop.to_keep = is_valid_property(prop)
+
+		properties[i] = prop
 
 	for i: int in properties.size():
 		var prop: Dictionary = properties[i]
