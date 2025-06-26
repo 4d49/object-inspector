@@ -16,7 +16,7 @@ static var _declarations: Array[Dictionary] = []
 ## [/codeblock]
 ## [param Validator] must receive three arguments [Object] and [Dictionary]. And it must return [param true] if the property can be handled. Example:
 ## [codeblock]static func can_handle(object: Object, property: Dictionary) -> bool:
-##    return property["type"] == TYPE_FLOAT
+##    return property.type == TYPE_FLOAT
 ## [/codeblock]
 ## [br][param Constructor] must return a [Control] node. Example:
 ## [codeblock]static func create_control(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> Control:
@@ -77,7 +77,7 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 
 		var control: Control = constructor.call(object, property, setter, getter)
 		if is_instance_valid(control):
-			control.set_name(property["name"])
+			control.set_name(property.name)
 			control.set_tooltip_text(get_property_description(object, property.name))
 
 			return control
@@ -103,12 +103,12 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 
 	_object = object
 
-	_property = property["name"]
-	_class_name = property["class_name"]
-	_type = property["type"]
-	_hint = property["hint"]
-	_hint_string = property["hint_string"]
-	_usage = property["usage"]
+	_property = property.name
+	_class_name = property.class_name
+	_type = property.type
+	_hint = property.hint
+	_hint_string = property.hint_string
+	_usage = property.usage
 
 	_setter = setter
 	_getter = getter

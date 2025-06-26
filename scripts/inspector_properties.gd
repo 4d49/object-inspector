@@ -30,7 +30,7 @@ class InspectorPropertyCategory extends InspectorProperty:
 		_title.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"header"))
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_CATEGORY
+		return property.usage == PROPERTY_USAGE_CATEGORY
 
 ## Handle [annotation @GDScript.@export_group] property.
 class InspectorPropertyGroup extends InspectorProperty:
@@ -75,7 +75,7 @@ class InspectorPropertyGroup extends InspectorProperty:
 		_button.set_pressed(value)
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_GROUP
+		return property.usage == PROPERTY_USAGE_GROUP
 
 ## Handle [annotation @GDScript.@export_subgroup] property.
 class InspectorPropertySubgroup extends InspectorPropertyGroup:
@@ -84,7 +84,7 @@ class InspectorPropertySubgroup extends InspectorPropertyGroup:
 		self.set_theme_type_variation(&"InspectorPropertySubGroup")
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["usage"] == PROPERTY_USAGE_SUBGROUP
+		return property.usage == PROPERTY_USAGE_SUBGROUP
 
 ## Handle [annotation @GDScript.@export_tool_button] property.
 class InspectorPropertyButton extends InspectorProperty:
@@ -130,7 +130,7 @@ class InspectorPropertyBool extends InspectorProperty:
 		super(object, property, setter, getter)
 
 		check_box = create_bool_control(setter, getter)
-		create_flow_container(property["name"], check_box)
+		create_flow_container(property.name, check_box)
 
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_BOOL, "bool", create_bool_control)
@@ -152,7 +152,7 @@ class InspectorPropertyBool extends InspectorProperty:
 		return check_box
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_BOOL
+		return property.type == TYPE_BOOL
 
 ## Handle [int] or [float] property.
 class InspectorPropertyNumber extends InspectorProperty:
@@ -161,19 +161,19 @@ class InspectorPropertyNumber extends InspectorProperty:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 
-		if property["type"] == TYPE_INT:
+		if property.type == TYPE_INT:
 			spin_box = create_int_control(setter, getter)
 		else:
 			spin_box = create_float_control(setter, getter)
 
-		if property["hint"] == PROPERTY_HINT_RANGE:
+		if property.hint == PROPERTY_HINT_RANGE:
 			var split: PackedStringArray = get_hint_string().split(',', false)
 
 			spin_box.set_min(split[0].to_float() if split.size() >= 1 and split[0].is_valid_float() else float(INT32_MIN))
 			spin_box.set_max(split[1].to_float() if split.size() >= 2 and split[1].is_valid_float() else float(INT32_MIN))
-			spin_box.set_step(split[2].to_float() if split.size() >= 3 and split[2].is_valid_float() else 1.0 if property["type"] == TYPE_INT else 0.001)
+			spin_box.set_step(split[2].to_float() if split.size() >= 3 and split[2].is_valid_float() else 1.0 if property.type == TYPE_INT else 0.001)
 
-		create_flow_container(property["name"], spin_box)
+		create_flow_container(property.name, spin_box)
 
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_INT, "int", create_int_control)
@@ -215,7 +215,7 @@ class InspectorPropertyNumber extends InspectorProperty:
 		return spin_box
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_INT or property["type"] == TYPE_FLOAT
+		return property.type == TYPE_INT or property.type == TYPE_FLOAT
 
 ## Handle [String] or [StringName] property.
 class InspectorPropertyString extends InspectorProperty:
@@ -225,14 +225,14 @@ class InspectorPropertyString extends InspectorProperty:
 	func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 		super(object, property, setter, getter)
 
-		if property["type"] == TYPE_STRING:
+		if property.type == TYPE_STRING:
 			line_edit = create_string_control(setter, getter)
 		else:
 			line_edit = create_string_name_control(setter, getter)
 
-		var hint: PropertyHint = property["hint"]
+		var hint: PropertyHint = property.hint
 		if not is_hint_file_or_dir(hint):
-			create_flow_container(property["name"], line_edit)
+			create_flow_container(property.name, line_edit)
 			return
 
 		line_edit.set_h_size_flags(Control.SIZE_EXPAND_FILL)
@@ -241,7 +241,7 @@ class InspectorPropertyString extends InspectorProperty:
 		hbox.add_child(line_edit)
 		hbox.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
-		var hint_string: String = property["hint_string"]
+		var hint_string: String = property.hint_string
 
 		setter = func(text: String) -> void:
 			line_edit.set_text(set_and_return_value(text))
@@ -277,7 +277,7 @@ class InspectorPropertyString extends InspectorProperty:
 			file_dialog.popup_centered_ratio(0.5)
 		)
 		hbox.add_child(choose_file)
-		create_flow_container(property["name"], hbox)
+		create_flow_container(property.name, hbox)
 
 	func _enter_tree() -> void:
 		if is_instance_valid(choose_file):
@@ -338,7 +338,7 @@ class InspectorPropertyString extends InspectorProperty:
 		return hint in FILE_OR_DIR_HINTS
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME
+		return property.type == TYPE_STRING or property.type == TYPE_STRING_NAME
 
 ## Handle [String] or [StringName] property with [param @export_multiline] annotation.
 class InspectorPropertyMultiline extends InspectorProperty:
@@ -357,7 +357,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		var label := Label.new()
 		label.set_name("Label")
 		label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-		label.set_text(property["name"].capitalize())
+		label.set_text(property.name.capitalize())
 		label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
 		label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 		label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
@@ -439,7 +439,7 @@ class InspectorPropertyMultiline extends InspectorProperty:
 		window.popup_centered_clamped(Vector2(500, 300))
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_MULTILINE_TEXT and (property["type"] == TYPE_STRING or property["type"] == TYPE_STRING_NAME)
+		return property.hint == PROPERTY_HINT_MULTILINE_TEXT and (property.type == TYPE_STRING or property.type == TYPE_STRING_NAME)
 
 ## Handle [Vector2] or [Vector2i] property.
 class InspectorPropertyVector2 extends InspectorProperty:
@@ -447,14 +447,14 @@ class InspectorPropertyVector2 extends InspectorProperty:
 		super(object, property, setter, getter)
 
 		var box: BoxContainer = null
-		if property["type"] == TYPE_VECTOR2:
+		if property.type == TYPE_VECTOR2:
 			box = create_vector2_control(setter, getter)
 		else:
 			box = create_vector2i_control(setter, getter)
 
 		box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
-		var label: Label = create_flow_container(property["name"], box).get_node(^"Label")
+		var label: Label = create_flow_container(property.name, box).get_node(^"Label")
 		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
 	static func _static_init() -> void:
@@ -513,7 +513,7 @@ class InspectorPropertyVector2 extends InspectorProperty:
 		return _create_vector2_control(setter, getter, true)
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_VECTOR2 or property["type"] == TYPE_VECTOR2I
+		return property.type == TYPE_VECTOR2 or property.type == TYPE_VECTOR2I
 
 ## Handle [Vector3] or [Vector3i] property.
 class InspectorPropertyVector3 extends InspectorProperty:
@@ -521,12 +521,12 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		super(object, property, setter, getter)
 
 		var box: BoxContainer = null
-		if property["type"] == TYPE_VECTOR3I:
+		if property.type == TYPE_VECTOR3I:
 			box = create_vector3i_control(setter, getter)
 		else:
 			box = create_vector3_control(setter, getter)
 
-		create_flow_container(property["name"], box).add_to_group(&"vertical")
+		create_flow_container(property.name, box).add_to_group(&"vertical")
 
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_VECTOR3, "Vector3", create_vector3_control)
@@ -593,7 +593,7 @@ class InspectorPropertyVector3 extends InspectorProperty:
 		return _create_vector3_control(setter, getter, true)
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_VECTOR3 or property["type"] == TYPE_VECTOR3I
+		return property.type == TYPE_VECTOR3 or property.type == TYPE_VECTOR3I
 
 ## Handle [Color] property.
 class InspectorPropertyColor extends InspectorProperty:
@@ -605,7 +605,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		color_picker = create_color_control(setter, getter)
 		color_picker.set_edit_alpha(property.hint != PROPERTY_HINT_COLOR_NO_ALPHA)
 
-		create_flow_container(property["name"], color_picker)
+		create_flow_container(property.name, color_picker)
 
 	static func _static_init() -> void:
 		InspectorPropertyType.register_type(TYPE_COLOR, "Color", create_color_control)
@@ -628,7 +628,7 @@ class InspectorPropertyColor extends InspectorProperty:
 		return color_picker
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["type"] == TYPE_COLOR
+		return property.type == TYPE_COLOR
 
 ## Handle [param enum] property.
 class InspectorPropertyEnum extends InspectorProperty:
@@ -640,7 +640,7 @@ class InspectorPropertyEnum extends InspectorProperty:
 		option_button = OptionButton.new()
 		option_button.set_clip_text(true)
 
-		var hint_split: PackedStringArray = String(property["hint_string"]).split(",", false)
+		var hint_split: PackedStringArray = String(property.hint_string).split(",", false)
 
 		for i: int in hint_split.size():
 			var split := hint_split[i].split(":", false)
@@ -658,13 +658,13 @@ class InspectorPropertyEnum extends InspectorProperty:
 		else:
 			option_button.set_disabled(true)
 
-		create_flow_container(property["name"], option_button)
+		create_flow_container(property.name, option_button)
 
 	func _on_id_pressed(id: int) -> void:
 		option_button.select(option_button.get_item_index(set_and_return_value(id)))
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_ENUM and property["type"] == TYPE_INT
+		return property.hint == PROPERTY_HINT_ENUM and property.type == TYPE_INT
 
 ## Handle [int] property with [param @export_flags] annotation.
 class InspectorPropertyFlags extends InspectorProperty:
@@ -674,7 +674,7 @@ class InspectorPropertyFlags extends InspectorProperty:
 		var vbox := VBoxContainer.new()
 		var value: int = get_value()
 
-		var split : PackedStringArray = String(property["hint_string"]).split(",", false)
+		var split : PackedStringArray = String(property.hint_string).split(",", false)
 		for i in split.size():
 			var check_box := CheckBox.new()
 			check_box.set_text(split[i])
@@ -694,11 +694,11 @@ class InspectorPropertyFlags extends InspectorProperty:
 
 			vbox.add_child(check_box)
 
-		var label: Label = create_flow_container(property["name"], vbox).get_node(^"Label")
+		var label: Label = create_flow_container(property.name, vbox).get_node(^"Label")
 		label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
 
 	static func can_handle(_obj: Object, property: Dictionary) -> bool:
-		return property["hint"] == PROPERTY_HINT_FLAGS and property["type"] == TYPE_INT
+		return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
 
 
 static func _static_init() -> void:

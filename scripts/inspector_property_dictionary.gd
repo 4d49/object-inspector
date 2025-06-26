@@ -26,7 +26,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 	var label := Label.new()
 	label.set_name("Label")
 	label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-	label.set_text(String(property["name"]).capitalize())
+	label.set_text(String(property.name).capitalize())
 	label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
 	label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 	label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
@@ -44,7 +44,7 @@ func _init(object: Object, property: Dictionary, setter: Callable, getter: Calla
 
 
 static func can_handle(_obj: Object, property: Dictionary) -> bool:
-	return property["type"] == TYPE_DICTIONARY
+	return property.type == TYPE_DICTIONARY
 
 
 static func _static_init() -> void:

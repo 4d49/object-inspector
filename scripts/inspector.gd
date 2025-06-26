@@ -201,7 +201,7 @@ func update_inspector() -> void:
 			continue
 
 		# TODO: Do something. I really don't like all the code below...
-		if property["usage"] == PROPERTY_USAGE_SUBGROUP:
+		if property.usage == PROPERTY_USAGE_SUBGROUP:
 			if is_instance_valid(group):
 				parent = group.get_meta(&"property_container")
 			elif is_instance_valid(category):
@@ -215,13 +215,13 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Subgroup property does not have `property_container` meta!")
 
 			subgroup = control
-			subgroup.call(&"set_toggled", _subgroup_states.get(property["name"], false))
+			subgroup.call(&"set_toggled", _subgroup_states.get(property.name, false))
 			subgroup.set_meta(&"group", group)
 
-			var error: Error = subgroup.connect(&"toggled", _on_subgroup_toggled.bind(property["name"]))
+			var error: Error = subgroup.connect(&"toggled", _on_subgroup_toggled.bind(property.name))
 			assert(error == OK, error_string(error))
 
-		elif property["usage"] == PROPERTY_USAGE_GROUP:
+		elif property.usage == PROPERTY_USAGE_GROUP:
 			if is_instance_valid(category):
 				parent = category.get_meta(&"property_container")
 			else:
@@ -233,13 +233,13 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Group property does not have `property_container` meta!")
 
 			group = control
-			group.call(&"set_toggled", _group_states.get(property["name"], false))
+			group.call(&"set_toggled", _group_states.get(property.name, false))
 			group.set_meta(&"category", category)
 
-			var error: Error = group.connect(&"toggled", _on_group_toggled.bind(property["name"]))
+			var error: Error = group.connect(&"toggled", _on_group_toggled.bind(property.name))
 			assert(error == OK, error_string(error))
 
-		elif property["usage"] == PROPERTY_USAGE_CATEGORY:
+		elif property.usage == PROPERTY_USAGE_CATEGORY:
 			_container.add_child(control)
 
 			parent = control.get_meta(&"property_container")
@@ -254,7 +254,7 @@ func update_inspector() -> void:
 
 			parent.add_child(control)
 
-		property["control"] = control
+		property.control = control
 
 
 func is_valid_usage_flag(usage: int) -> bool:
@@ -298,8 +298,13 @@ func _update_property_list() -> void:
 		return
 
 	var properties: Array[Dictionary] = _object.get_property_list()
-	for prop: Dictionary in properties:
-		prop[&"to_keep"] = is_valid_property(prop)
+
+	for i: int in properties.size():
+		# Convert our property dict to typed.
+		var prop: Dictionary[StringName, Variant] = Dictionary(properties[i], TYPE_STRING_NAME, &"", null, TYPE_NIL, &"", null)
+		prop.to_keep = is_valid_property(prop)
+
+		properties[i] = prop
 
 	for i: int in properties.size():
 		var prop: Dictionary = properties[i]
@@ -318,12 +323,12 @@ func _update_property_list() -> void:
 
 	update_inspector()
 
-
 func _on_filter_text_chnaged(filter: String) -> void:
 	for property: Dictionary in _valid_properties:
-		var control: Control = property["control"]
+		var control: Control = property.control
 
-		if filter.is_subsequence_ofn(property["name"]):
+		@warning_ignore_start("unsafe_cast", "unsafe_call_argument")
+		if filter.is_subsequence_ofn(property.name):
 			if control.has_meta(&"category"):
 				var category := control.get_meta(&"category") as Control
 				if is_instance_valid(category):
