@@ -1,9 +1,9 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## [InspectorProperty] class for [Dictionary].
-class_name InspectorPropertyDictionary
-extends InspectorProperty
+## [PropertyHandler] class for [Dictionary].
+class_name PropertyHandlerDictionary
+extends PropertyHandler
 
 
 const Paginator = preload("res://addons/object-inspector/scripts/inspector_property_paginator.gd")
@@ -15,7 +15,7 @@ var _dictionary_control: InspectorPropertyTypeDictionary = null
 
 func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 	super(object, property, setter, getter)
-	self.set_theme_type_variation(&"InspectorPropertyDictionary")
+	self.set_theme_type_variation(&"PropertyHandlerDictionary")
 
 	_container = VBoxContainer.new()
 	_container.set_name("Container")
@@ -48,7 +48,7 @@ static func can_handle(_obj: Object, property: Dictionary) -> bool:
 
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(can_handle, InspectorPropertyDictionary.new)
+	PropertyHandler.declare_property(can_handle, PropertyHandlerDictionary.new)
 	InspectorPropertyType.register_type(TYPE_DICTIONARY, "Dictionary", create_dictionary_control)
 
 
@@ -80,7 +80,7 @@ class InspectorPropertyTypeDictionary extends Button:
 	var _add_button: Button = null
 
 	func _init(dictionary: Dictionary, readonly: bool) -> void:
-		self.set_theme_type_variation(&"InspectorPropertyDictionary")
+		self.set_theme_type_variation(&"PropertyHandlerDictionary")
 
 		_dict = dictionary
 		_dict_keys = dictionary.keys()

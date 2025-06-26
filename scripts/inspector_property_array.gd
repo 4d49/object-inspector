@@ -1,9 +1,9 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## [InspectorProperty] class for [Array].
-class_name InspectorPropertyArray
-extends InspectorProperty
+## [PropertyHandler] class for [Array].
+class_name PropertyHandlerArray
+extends PropertyHandler
 
 
 const InspectorProperties = preload("res://addons/object-inspector/scripts/inspector_properties.gd")
@@ -19,7 +19,7 @@ var _array_control: InspectorPropertyTypeArray = null
 
 func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
 	super(object, property, setter, getter)
-	self.set_theme_type_variation(&"InspectorPropertyArray")
+	self.set_theme_type_variation(&"PropertyHandlerArray")
 
 	_container = VBoxContainer.new()
 	_container.set_name("Container")
@@ -74,7 +74,7 @@ static func can_handle(object: Object, property: Dictionary) -> bool:
 
 
 static func _static_init() -> void:
-	InspectorProperty.declare_property(InspectorPropertyArray.can_handle, InspectorPropertyArray.new)
+	PropertyHandler.declare_property(PropertyHandlerArray.can_handle, PropertyHandlerArray.new)
 	InspectorPropertyType.register_type(TYPE_ARRAY, "Array", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_BYTE_ARRAY, "PackedByteArray", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_FLOAT32_ARRAY, "PackedFloat32Array", create_array_control)
@@ -100,7 +100,7 @@ class InspectorPropertyTypeArray extends Button:
 	var _paginator: Paginator = null
 
 	func _init(array: Variant, readonly: bool) -> void:
-		self.set_theme_type_variation(&"InspectorPropertyArray")
+		self.set_theme_type_variation(&"PropertyHandlerArray")
 
 		_array = array
 		_array_type = get_array_type(array)
