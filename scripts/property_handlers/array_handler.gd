@@ -2,15 +2,14 @@
 # See `LICENSE.md` included in the source distribution for details.
 
 ## [PropertyHandler] class for [Array].
-class_name PropertyHandlerArray
-extends PropertyHandler
+extends "../property_handler.gd"
 
 
 const InspectorProperties = preload("res://addons/object-inspector/scripts/inspector_properties.gd")
 const Paginator = preload("res://addons/object-inspector/scripts/inspector_property_paginator.gd")
 
-const INT32_MIN: int = InspectorProperties.INT32_MIN
-const INT32_MAX: int = InspectorProperties.INT32_MAX
+
+const MAX_ARRAY_SIZE: int = 2147483647
 
 
 var _container: VBoxContainer = null
@@ -74,7 +73,6 @@ static func can_handle(object: Object, property: Dictionary) -> bool:
 
 
 static func _static_init() -> void:
-	PropertyHandler.declare_property(PropertyHandlerArray.can_handle, PropertyHandlerArray.new)
 	InspectorPropertyType.register_type(TYPE_ARRAY, "Array", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_BYTE_ARRAY, "PackedByteArray", create_array_control)
 	InspectorPropertyType.register_type(TYPE_PACKED_FLOAT32_ARRAY, "PackedFloat32Array", create_array_control)
@@ -269,7 +267,7 @@ class InspectorPropertyTypeArray extends Button:
 		_size_spin = SpinBox.new()
 		_size_spin.set_name("SizeSpinBox")
 		_size_spin.set_min(0)
-		_size_spin.set_max(INT32_MAX)
+		_size_spin.set_max(MAX_ARRAY_SIZE)
 		_size_spin.set_step(1)
 		_size_spin.set_use_rounded_values(true)
 		_size_spin.set_value_no_signal(_array.size())

@@ -2,8 +2,7 @@
 # See `LICENSE.md` included in the source distribution for details.
 
 ## [PropertyHandler] class for [Dictionary].
-class_name PropertyHandlerDictionary
-extends PropertyHandler
+extends "../property_handler.gd"
 
 
 const Paginator = preload("res://addons/object-inspector/scripts/inspector_property_paginator.gd")
@@ -48,7 +47,6 @@ static func can_handle(_obj: Object, property: Dictionary) -> bool:
 
 
 static func _static_init() -> void:
-	PropertyHandler.declare_property(can_handle, PropertyHandlerDictionary.new)
 	InspectorPropertyType.register_type(TYPE_DICTIONARY, "Dictionary", create_dictionary_control)
 
 
