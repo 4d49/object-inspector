@@ -12,6 +12,19 @@
 [ext_resource type="Texture2D" uid="uid://77sssjy7pfpb" path="res://addons/object-inspector/icons/page_prev.svg" id="8_ybigx"]
 [ext_resource type="Texture2D" uid="uid://clcforx3jk84m" path="res://addons/object-inspector/icons/delete.svg" id="9_t1qfx"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cncyr"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(1, 1, 1, 0.125)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 3
+anti_aliasing = false
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h08j0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ds1an"]
@@ -40,19 +53,6 @@ corner_radius_bottom_left = 3
 corner_detail = 3
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cncyr"]
-content_margin_left = 2.0
-content_margin_top = 2.0
-content_margin_right = 2.0
-content_margin_bottom = 2.0
-bg_color = Color(1, 1, 1, 0.125)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 3
-anti_aliasing = false
-
 [resource]
 BoxContainer/constants/separation = 2
 FlowContainer/constants/h_separation = 2
@@ -61,6 +61,13 @@ Inspector/base_type = &"VBoxContainer"
 Inspector/icons/file = ExtResource("1_65vh4")
 Inspector/icons/maximize = ExtResource("1_hfaeu")
 Inspector/icons/search = ExtResource("2_vebvf")
+InspectorPropertyPaginator/base_type = &"VBoxContainer"
+InspectorPropertyPaginator/icons/page_first = ExtResource("5_e0bdv")
+InspectorPropertyPaginator/icons/page_last = ExtResource("6_wdbtw")
+InspectorPropertyPaginator/icons/page_next = ExtResource("7_hjbvh")
+InspectorPropertyPaginator/icons/page_prev = ExtResource("8_ybigx")
+InspectorSubProperty/base_type = &"PropertyHandler"
+InspectorSubProperty/styles/panel = SubResource("StyleBoxFlat_cncyr")
 PropertyHandler/base_type = &"PanelContainer"
 PropertyHandler/styles/panel = SubResource("StyleBoxEmpty_h08j0")
 PropertyHandlerArray/base_type = &"PanelContainer"
@@ -80,10 +87,3 @@ PropertyHandlerGroup/icons/expanded = ExtResource("2_0jwgf")
 PropertyHandlerGroup/styles/panel = SubResource("StyleBoxFlat_idiuy")
 PropertyHandlerSubGroup/base_type = &"PropertyHandlerGroup"
 PropertyHandlerSubGroup/styles/panel = SubResource("StyleBoxFlat_cncyr")
-InspectorPropertyPaginator/base_type = &"VBoxContainer"
-InspectorPropertyPaginator/icons/page_first = ExtResource("5_e0bdv")
-InspectorPropertyPaginator/icons/page_last = ExtResource("6_wdbtw")
-InspectorPropertyPaginator/icons/page_next = ExtResource("7_hjbvh")
-InspectorPropertyPaginator/icons/page_prev = ExtResource("8_ybigx")
-InspectorSubProperty/base_type = &"PropertyHandler"
-InspectorSubProperty/styles/panel = SubResource("StyleBoxFlat_cncyr")

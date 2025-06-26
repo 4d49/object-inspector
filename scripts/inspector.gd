@@ -46,8 +46,7 @@ func _init() -> void:
 	self.set_theme_type_variation(&"Inspector")
 
 	# INFO: Required for static initialization.
-	load("res://addons/object-inspector/scripts/inspector_property_array.gd")
-	load("res://addons/object-inspector/scripts/inspector_property_dictionary.gd")
+	load("res://addons/object-inspector/scripts/inspector_properties.gd")
 
 	_search = LineEdit.new()
 	_search.set_placeholder("Filter Properties")
