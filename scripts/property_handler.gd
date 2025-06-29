@@ -1,9 +1,8 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Base PropertyHandler class.
-class_name PropertyHandler
-extends PanelContainer
+
+const MINIMUM_SIZE: Vector2 = Vector2(96.0, 16.0)
 
 
 static var _declarations: Array[Dictionary] = []
@@ -38,14 +37,13 @@ static func declare_property(validator: Callable, constructor: Callable) -> void
 		}
 		_declarations.push_front(declaration)
 
-
 ## Returns [param true] that the property can be handled.
 static func can_handle_property(object: Object, property: Dictionary) -> bool:
 	if not is_instance_valid(object):
 		return false
 
 	for declaration: Dictionary in _declarations:
-		var validator: Callable = declaration[&"validator"]
+		var validator: Callable = declaration.validator
 		if validator.is_valid() and validator.call(object, property):
 			return true
 
@@ -55,7 +53,7 @@ static func can_handle_property(object: Object, property: Dictionary) -> bool:
 static func get_property_description(object: Object, property: StringName) -> String:
 	const METHOD_NAME: StringName = &"get_property_description"
 
-	if object.has_method(METHOD_NAME):
+	if is_instance_valid(object) and object.has_method(METHOD_NAME):
 		return object.call(METHOD_NAME, property)
 
 	return Inspector.get_object_property_description(object, property)
@@ -67,11 +65,11 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 		return null
 
 	for declaration: Dictionary in _declarations:
-		var validator: Callable = declaration[&"validator"]
+		var validator: Callable = declaration.validator
 		if not validator.is_valid() or not validator.call(object, property):
 			continue
 
-		var constructor: Callable = declaration[&"constructor"]
+		var constructor: Callable = declaration.constructor
 		if not constructor.is_valid():
 			continue
 
@@ -85,121 +83,75 @@ static func create_property(object: Object, property: Dictionary, setter: Callab
 	return null
 
 
-var _object: Object = null
+static func create_label(text: String) -> Label:
+	var label := Label.new()
+	label.set_name("Label")
+	label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
+	label.set_text(text.capitalize())
+	label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
+	label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+	label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+	label.set_v_size_flags(Control.SIZE_EXPAND_FILL)
+	label.set_stretch_ratio(0.75)
+	label.set_custom_minimum_size(MINIMUM_SIZE)
 
-var _property: StringName = &""
-var _class_name: StringName = &""
-var _type: Variant.Type = TYPE_NIL
-var _hint: PropertyHint = PROPERTY_HINT_NONE
-var _hint_string: String = ""
-var _usage: int = PROPERTY_USAGE_NONE
-
-var _setter: Callable
-var _getter: Callable
-
-
-func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	self.set_theme_type_variation(&"PropertyHandler")
-
-	_object = object
-
-	_property = property.name
-	_class_name = property.class_name
-	_type = property.type
-	_hint = property.hint
-	_hint_string = property.hint_string
-	_usage = property.usage
-
-	_setter = setter
-	_getter = getter
+	return label
 
 
-func _make_custom_tooltip(for_text: String) -> Object:
-	if for_text.is_empty():
-		return null
+static func create_spin_box() -> SpinBox:
+	var spin_box := SpinBox.new()
+	spin_box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+	spin_box.set_v_size_flags(Control.SIZE_EXPAND_FILL)
 
-	var rich_text := RichTextLabel.new()
-	rich_text.set_fit_content(true)
-	rich_text.set_autowrap_mode(TextServer.AUTOWRAP_OFF)
-	rich_text.add_theme_stylebox_override(&"normal", get_theme_stylebox(&"panel", &"TooltipPanel"))
-	rich_text.append_text(for_text)
-
-	return rich_text
+	return spin_box
 
 
-func get_object() -> Object:
-	return _object
+static func create_button(text: String, on_pressed: Callable) -> Button:
+	var button := Button.new()
+	button.set_text(text)
+	button.set_name("Button")
+	button.set_h_size_flags(Control.SIZE_EXPAND_FILL)
+	button.set_v_size_flags(Control.SIZE_EXPAND_FILL)
 
-func get_property() -> StringName:
-	return _property
+	if on_pressed.is_valid():
+		button.pressed.connect(on_pressed)
+	else:
+		button.set_disabled(true)
 
-func get_class_name() -> StringName:
-	return _class_name
-
-func get_type() -> Variant.Type:
-	return _type
-
-func is_compatible_type(type: Variant.Type) -> bool:
-	return get_type() == type
-
-func get_hint() -> PropertyHint:
-	return _hint
-
-func get_hint_string() -> String:
-	return _hint_string
-
-func get_usage() -> int:
-	return _usage
+	return button
 
 
-func get_setter() -> Callable:
-	return _setter
-
-func get_getter() -> Callable:
-	return _getter
-
-
-func set_value(new_value: Variant) -> void:
-	_setter.call(new_value)
-
-func get_value() -> Variant:
-	return _getter.call()
-
-func set_and_return_value(new_value: Variant) -> Variant:
-	set_value(new_value)
-	return get_value()
-
-## Returns created child [FlowContainer] node with [Label] and custom [Control] as children.
-func create_flow_container(title: String, control: Control, parent: Control = self) -> FlowContainer:
-	const MINIMUM_SIZE: Vector2 = Vector2(96.0, 16.0)
-
-	var container := FlowContainer.new()
-	container.set_name("Container")
+static func create_flow_container(title: String, control: Control) -> FlowContainer:
+	var flow_container := FlowContainer.new()
+	flow_container.set_name("Container")
+	flow_container.set_custom_minimum_size(MINIMUM_SIZE)
 
 	if title:
-		var label := Label.new()
-		label.set_name("Label")
-		label.set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER)
-		label.set_text(title.capitalize())
-		label.set_mouse_filter(Control.MOUSE_FILTER_IGNORE)
-		label.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-		label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
-		label.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		label.set_stretch_ratio(0.75)
-		label.set_custom_minimum_size(MINIMUM_SIZE)
-		container.add_child(label)
+		flow_container.add_child(create_label(title))
 
 	if is_instance_valid(control):
 		control.set_name("Property")
 		control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 		control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
 		control.set_custom_minimum_size(MINIMUM_SIZE)
+		flow_container.add_child(control)
+
+	return flow_container
+
+
+static func create_property_panel(description: String, control: Control) -> PanelContainer:
+	var container := PanelContainer.new()
+	container.set_custom_minimum_size(MINIMUM_SIZE)
+	container.set_theme_type_variation(&"PropertyPanel")
+	container.set_tooltip_text(description)
+
+	if is_instance_valid(control):
 		container.add_child(control)
 
-	parent.add_child(container)
 	return container
 
-## Return [param true] if [PropertyHandler] can handle the object and property.
-@warning_ignore("unused_parameter")
-static func can_handle(object: Object, property: Dictionary) -> bool:
-	return false
+static func create_sub_property_panel(description: String, control: Control) -> PanelContainer:
+	var property_panel := create_property_panel(description, control)
+	property_panel.set_theme_type_variation(&"SubPropertyPanel")
+
+	return property_panel

@@ -1,40 +1,42 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Handle [bool] property.
 extends "../property_handler.gd"
 
 
-var check_box: CheckBox = null
-
-
-func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	super(object, property, setter, getter)
-
-	check_box = create_bool_control(setter, getter)
-	create_flow_container(property.name, check_box)
-
-
-static func _static_init() -> void:
-	InspectorPropertyType.register_type(TYPE_BOOL, "bool", create_bool_control)
-
-
-static func create_bool_control(setter: Callable, getter: Callable) -> CheckBox:
+static func create_bool_editor(setter: Callable, getter: Callable, property: Dictionary) -> CheckBox:
 	var check_box := CheckBox.new()
 	check_box.set_text("On")
 	check_box.set_flat(true)
 	check_box.set_pressed_no_signal(getter.call())
 
 	if setter.is_valid():
-		check_box.toggled.connect(func(value: bool) -> void:
+		var callback: Callable = func(value: bool) -> void:
 			setter.call(value)
 			check_box.set_pressed_no_signal(getter.call())
-		)
+
+		check_box.toggled.connect(callback)
 	else:
 		check_box.set_disabled(true)
 
 	return check_box
 
 
-static func can_handle(_obj: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary) -> bool:
 	return property.type == TYPE_BOOL
+
+
+static func create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+	) -> Control:
+
+	assert(can_handle(object, property), "Can't handle property!")
+
+	var description := get_property_description(object, property.name)
+	var bool_editor := create_bool_editor(setter, getter, property)
+	var flow_container := create_flow_container(property.name, bool_editor)
+
+	return create_property_panel(description, flow_container)
