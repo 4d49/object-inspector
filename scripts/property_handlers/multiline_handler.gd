@@ -28,7 +28,7 @@ static func create_window(setter: Callable, getter: Callable) -> AcceptDialog:
 	return window
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	const VALID_TYPES: PackedInt32Array = [
 		TYPE_STRING,
 		TYPE_STRING_NAME,
@@ -42,9 +42,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var container := VBoxContainer.new()
 	container.set_name("Container")
@@ -105,9 +106,6 @@ static func create(
 
 		window.popup_centered_clamped(Vector2(500, 300))
 	maximize.pressed.connect(on_maximize_pressed)
-
 	hbox.add_child(maximize)
 
-	var description := get_property_description(object, property.name)
-
-	return create_property_panel(description, container)
+	return wrap_property_editor(flags | FLAG_NO_LABEL, container, object, property)

@@ -4,7 +4,7 @@
 extends "../property_handler.gd"
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	return property.usage == PROPERTY_USAGE_CATEGORY
 
 
@@ -13,9 +13,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var container := PanelContainer.new()
 	container.set_theme_type_variation(&"PropertyCategory")

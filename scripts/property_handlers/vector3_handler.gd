@@ -78,7 +78,7 @@ static func create_vector3_editor(
 	return box
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	const VALID_TYPES: PackedInt32Array = [
 		TYPE_VECTOR3,
 		TYPE_VECTOR3I,
@@ -92,12 +92,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
-	var description := get_property_description(object, property.name)
 	var vector3_editor := create_vector3_editor(setter, getter, property)
-	var flow_container := create_flow_container(property.name, vector3_editor)
-
-	return create_property_panel(description, flow_container)
+	return wrap_property_editor(flags, vector3_editor, object, property)

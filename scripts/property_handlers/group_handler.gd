@@ -4,7 +4,7 @@
 extends "../property_handler.gd"
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	const VALID_USAGE: PackedInt32Array = [
 		PROPERTY_USAGE_GROUP,
 		PROPERTY_USAGE_SUBGROUP,
@@ -18,9 +18,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var theme_variation: StringName = &"PropertyGroup"
 	if property.usage == PROPERTY_USAGE_SUBGROUP:

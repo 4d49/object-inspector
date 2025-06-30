@@ -53,7 +53,7 @@ static func create_flags_editor(
 	return vbox
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
 
 
@@ -62,12 +62,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
-	var description := get_property_description(object, property.name)
 	var flags_editor := create_flags_editor(setter, getter, property)
-	var flow_container := create_flow_container(property.name, flags_editor)
-
-	return create_property_panel(description, flow_container)
+	return wrap_property_editor(flags, flags_editor, object, property)

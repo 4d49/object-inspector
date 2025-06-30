@@ -41,7 +41,7 @@ static func create_button_editor(setter: Callable, getter: Callable, property: D
 	return button
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	return property.hint == PROPERTY_HINT_TOOL_BUTTON and property.type == TYPE_CALLABLE
 
 
@@ -50,7 +50,8 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 	return create_button_editor(setter, getter, property)

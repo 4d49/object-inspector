@@ -56,7 +56,7 @@ static func parse_hint_string(hint_string: String) -> Dictionary[StringName, flo
 	return {&"min": values[0], &"max": values[1], &"step": values[2]}
 
 
-static func can_handle(object: Object, property: Dictionary) -> bool:
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	const VALID_TYPES: PackedInt32Array = [
 		TYPE_INT,
 		TYPE_FLOAT,
@@ -70,12 +70,10 @@ static func create(
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
 	) -> Control:
 
-	assert(can_handle(object, property), "Can't handle property!")
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
-	var description := get_property_description(object, property.name)
 	var number_editor := create_number_editor(setter, getter, property)
-	var flow_container := create_flow_container(property.name, number_editor)
-
-	return create_property_panel(description, flow_container)
+	return wrap_property_editor(flags, number_editor, object, property)
