@@ -1,47 +1,65 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Handle [Vector3] or [Vector3i] property.
 extends "../property_handler.gd"
 
 
-const INT32_MIN: int = -2147483648
-const INT32_MAX: int =  2147483647
+static func can_handle_vector3(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_VECTOR3
+
+static func can_handle_vector3i(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_VECTOR3I
 
 
-func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	super(object, property, setter, getter)
+static func create_vector3(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
 
-	var box: BoxContainer = null
-	if property.type == TYPE_VECTOR3I:
-		box = create_vector3i_control(setter, getter)
-	else:
-		box = create_vector3_control(setter, getter)
+	assert(can_handle_vector3(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
 
-	create_flow_container(property.name, box).add_to_group(&"vertical")
+static func create_vector3i(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_vector3i(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
 
 
-static func _static_init() -> void:
-	InspectorPropertyType.register_type(TYPE_VECTOR3, "Vector3", create_vector3_control)
-	InspectorPropertyType.register_type(TYPE_VECTOR3I, "Vector3i", create_vector3i_control)
+static func _create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
 
 
-static func _create_vector3_control(setter: Callable, getter: Callable, is_vector3i: bool) -> BoxContainer:
+	const DEFAULT_MIN: int = -2147483648
+	const DEFAULT_MAX: int =  2147483647
+
 	var box := BoxContainer.new()
-	box.add_to_group(&"vertical")
+	box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
 	var value: Vector3 = getter.call()
 
-	var x_spin := SpinBox.new()
+	var x_spin := create_spin_box()
 	x_spin.set_editable(setter.is_valid())
 	x_spin.set_name("X")
 	x_spin.set_prefix("x")
-	x_spin.set_min(INT32_MIN)
-	x_spin.set_max(INT32_MAX)
-	x_spin.set_step(1.0 if is_vector3i else 0.001)
-	x_spin.set_use_rounded_values(is_vector3i)
+	x_spin.set_min(DEFAULT_MIN)
+	x_spin.set_max(DEFAULT_MAX)
+	x_spin.set_step(1.0 if property.type == TYPE_VECTOR3I else 0.001)
+	x_spin.set_use_rounded_values(property.type == TYPE_VECTOR3I)
 	x_spin.set_value_no_signal(value.x)
-	x_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	box.add_child(x_spin)
 
 	var y_spin: SpinBox = x_spin.duplicate()
@@ -56,38 +74,35 @@ static func _create_vector3_control(setter: Callable, getter: Callable, is_vecto
 	z_spin.set_value_no_signal(value.z)
 	box.add_child(z_spin)
 
-	var on_value_changed: Callable
-	if is_vector3i:
-		on_value_changed = func(_value) -> void:
-			setter.call(Vector3i(x_spin.get_value(), y_spin.get_value(), z_spin.get_value()))
-			var vector3i: Vector3i = getter.call()
+	var callback: Callable
+	if property.type == TYPE_VECTOR3I:
+		callback = func(_value) -> void:
+			setter.call(Vector3i(
+					x_spin.get_value(),
+					y_spin.get_value(),
+					z_spin.get_value(),
+				)
+			)
 
-			x_spin.set_value_no_signal(vector3i.x)
-			y_spin.set_value_no_signal(vector3i.y)
-			z_spin.set_value_no_signal(vector3i.z)
+			var current: Vector3i = getter.call()
+			x_spin.set_value_no_signal(current.x)
+			y_spin.set_value_no_signal(current.y)
+			z_spin.set_value_no_signal(current.z)
 	else:
-		on_value_changed = func(_value) -> void:
-			setter.call(Vector3(x_spin.get_value(), y_spin.get_value(), z_spin.get_value()))
-			var vector3: Vector3 = getter.call()
+		callback = func(_value) -> void:
+			setter.call(Vector3(
+					x_spin.get_value(),
+					y_spin.get_value(),
+					z_spin.get_value(),
+				)
+			)
 
-			x_spin.set_value_no_signal(value.x)
-			y_spin.set_value_no_signal(value.y)
-			z_spin.set_value_no_signal(value.z)
+			var current: Vector3 = getter.call()
+			x_spin.set_value_no_signal(current.x)
+			y_spin.set_value_no_signal(current.y)
+			z_spin.set_value_no_signal(current.z)
+	x_spin.value_changed.connect(callback)
+	y_spin.value_changed.connect(callback)
+	z_spin.value_changed.connect(callback)
 
-	x_spin.value_changed.connect(on_value_changed)
-	y_spin.value_changed.connect(on_value_changed)
-	z_spin.value_changed.connect(on_value_changed)
-
-	return box
-
-
-static func create_vector3_control(setter: Callable, getter: Callable) -> BoxContainer:
-	return _create_vector3_control(setter, getter, false)
-
-
-static func create_vector3i_control(setter: Callable, getter: Callable) -> BoxContainer:
-	return _create_vector3_control(setter, getter, true)
-
-
-static func can_handle(_obj: Object, property: Dictionary) -> bool:
-	return property.type == TYPE_VECTOR3 or property.type == TYPE_VECTOR3I
+	return wrap_property_editor(flags | FLAG_VERTICAL, box, object, property)

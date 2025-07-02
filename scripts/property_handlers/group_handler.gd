@@ -1,55 +1,86 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Handle [annotation @GDScript.@export_group] property.
 extends "../property_handler.gd"
 
 
-signal toggled(expanded: bool)
+static func can_handle_group(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.usage == PROPERTY_USAGE_GROUP
+
+static func can_handle_subgroup(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.usage == PROPERTY_USAGE_SUBGROUP
 
 
-var _container: VBoxContainer = null
-var _button: Button = null
+static func create_group(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_group(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+static func create_subgroup(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_subgroup(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
 
 
-func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	super(object, property, setter, getter)
-	self.set_theme_type_variation(&"PropertyHandlerGroup")
+static func _create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	var theme_variation: StringName = &"PropertyGroup"
+	if property.usage == PROPERTY_USAGE_SUBGROUP:
+		theme_variation = &"PropertySubGroup"
+
+	var container := PanelContainer.new()
+	container.set_theme_type_variation(theme_variation)
+	container.add_user_signal("toggled", [{"name": "expanded", "type": TYPE_BOOL}])
 
 	var vbox := VBoxContainer.new()
+	container.add_child(vbox)
 
-	_container = VBoxContainer.new()
-	_container.hide() # By default group is collapsed.
-	vbox.add_child(_container)
-	self.set_meta(&"property_container", _container)
+	var property_container := VBoxContainer.new()
+	property_container.hide()
 
-	_button = Button.new()
-	_button.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
-	_button.set_name("Button")
-	_button.set_toggle_mode(true)
-	_button.set_flat(true)
-	_button.set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT)
-	_button.set_text(get_property().capitalize())
-	_button.toggled.connect(_on_button_toggled)
-	vbox.add_child(_button, false, Node.INTERNAL_MODE_FRONT)
+	container.set_meta(&"property_container", property_container)
+	container.connect(&"toggled", property_container.set_visible)
+	vbox.add_child(property_container)
 
-	self.add_child(vbox)
+	var button := Button.new()
+	button.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
+	button.set_name("Button")
+	button.set_toggle_mode(true)
+	button.set_pressed(false)
+	button.set_flat(true)
+	button.set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT)
+	button.set_text(property.name)
+	vbox.add_child(button, false, Node.INTERNAL_MODE_FRONT)
 
+	var on_theme_changed: Callable = func() -> void:
+		var icon: Texture2D = container.get_theme_icon(&"collapsed", theme_variation)
+		button.set_button_icon(icon)
+	button.theme_changed.connect(on_theme_changed, Node.INTERNAL_MODE_FRONT)
 
-func _enter_tree() -> void:
-	_button.set_button_icon(get_theme_icon(&"collapsed"))
+	var on_button_toggled: Callable = func	(expanded: bool) -> void:
+		var icon_type: StringName = &"expanded" if expanded else &"collapsed"
+		var icon: Texture2D = container.get_theme_icon(icon_type)
+		button.set_button_icon(icon)
 
+		container.emit_signal(&"toggled", expanded)
+	button.toggled.connect(on_button_toggled)
 
-func _on_button_toggled(expanded: bool) -> void:
-	_button.set_button_icon(get_theme_icon(&"expanded") if expanded else get_theme_icon(&"collapsed"))
-	_container.set_visible(expanded)
-
-	toggled.emit(expanded)
-
-
-func set_toggled(value: bool) -> void:
-	_button.set_pressed(value)
-
-
-static func can_handle(_obj: Object, property: Dictionary) -> bool:
-	return property.usage == PROPERTY_USAGE_GROUP
+	return container

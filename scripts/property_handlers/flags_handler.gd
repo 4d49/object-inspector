@@ -1,39 +1,61 @@
 # Copyright (c) 2022-2025 Mansur Isaev and contributors - MIT License
 # See `LICENSE.md` included in the source distribution for details.
 
-## Handle [int] property with [param @export_flags] annotation.
 extends "../property_handler.gd"
 
 
-func _init(object: Object, property: Dictionary, setter: Callable, getter: Callable) -> void:
-	super(object, property, setter, getter)
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
 
+
+static func create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle(object, property, flags), "Can't handle property!")
+
+	var value: int = getter.call()
 	var vbox := VBoxContainer.new()
-	var value: int = get_value()
 
-	var split : PackedStringArray = String(property.hint_string).split(",", false)
-	for i in split.size():
+	var parsed_hint_string := parse_hint_string(property.hint_string)
+	for name: String in parsed_hint_string:
+		var index: int = parsed_hint_string[name]
+
 		var check_box := CheckBox.new()
-		check_box.set_text(split[i])
-		check_box.set_pressed(value & (1 << i))
+		check_box.set_name(name)
+		check_box.set_text(name)
+		check_box.set_pressed(value & index)
+		check_box.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 		if setter.is_valid():
-			check_box.toggled.connect(func(pressed: bool) -> void:
-				if pressed:
-					set_value(get_value() | (1 << i))
-				else:
-					set_value(get_value() & ~(1 << i))
+			var callback: Callable = func(pressed: bool) -> void:
+				value = getter.call()
 
-				check_box.set_pressed(get_value() & 1 << i)
-			)
+				if pressed:
+					setter.call(value | index)
+				else:
+					setter.call(value & ~index)
+
+				check_box.set_pressed((getter.call() & index) == index)
+
+			check_box.toggled.connect(callback)
 		else:
 			check_box.set_disabled(true)
 
 		vbox.add_child(check_box)
 
-	var label: Label = create_flow_container(property.name, vbox).get_node(^"Label")
-	label.set_v_size_flags(Control.SIZE_SHRINK_BEGIN)
+	return wrap_property_editor(flags, vbox, object, property)
 
 
-static func can_handle(_obj: Object, property: Dictionary) -> bool:
-	return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
+static func parse_hint_string(hint_string: String) -> Dictionary[String, int]:
+	var option: Dictionary[String, int] = {}
+
+	var split: PackedStringArray = hint_string.split(",", false)
+	for i: int in split.size():
+		option[split[i]] = 1 << i
+
+	return option
