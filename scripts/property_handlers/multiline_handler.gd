@@ -9,8 +9,8 @@ static func create_window(setter: Callable, getter: Callable) -> AcceptDialog:
 	window.set_name("EditWindow")
 	window.set_title("Text edit")
 	window.set_min_size(Vector2(375, 225))
-	window.add_cancel_button("Cancel")
 	window.set_ok_button_text("Apply")
+	window.add_cancel_button("Cancel").pressed.connect(window.queue_free)
 	window.close_requested.connect(window.queue_free)
 
 	var text_edit := TextEdit.new()
@@ -24,6 +24,7 @@ static func create_window(setter: Callable, getter: Callable) -> AcceptDialog:
 		window.confirmed.connect(callback)
 	else:
 		text_edit.set_editable(false)
+		window.get_ok_button().set_disabled(true)
 
 	return window
 
