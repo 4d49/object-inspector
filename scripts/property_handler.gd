@@ -2,9 +2,6 @@
 # See `LICENSE.md` included in the source distribution for details.
 
 
-const MINIMUM_SIZE: Vector2 = Vector2(96.0, 16.0)
-
-
 enum {
 	FLAG_NONE         = 0,
 	FLAG_COMPACT      = 1 << 0,
@@ -14,7 +11,46 @@ enum {
 }
 
 
-static var _declarations: Array[Dictionary] = []
+const MINIMUM_SIZE: Vector2 = Vector2(128.0, 24.0)
+
+
+static var _registry: Dictionary[Variant.Type, Array] = {}
+
+# Registers default property handlers for Inspector types.
+# Override this method to modify or extend the registered handlers.
+static func _static_init() -> void:
+	const PropertyHandler:          GDScript = preload("property_handler.gd")
+	const PropertyHandlerBool:      GDScript = preload("property_handlers/bool_handler.gd")
+	const PropertyHandlerButton:    GDScript = preload("property_handlers/button_handler.gd")
+	const PropertyHandlerCategory:  GDScript = preload("property_handlers/category_handler.gd")
+	const PropertyHandlerColor:     GDScript = preload("property_handlers/color_handler.gd")
+	const PropertyHandlerEnum:      GDScript = preload("property_handlers/enum_handler.gd")
+	const PropertyHandlerFlags:     GDScript = preload("property_handlers/flags_handler.gd")
+	const PropertyHandlerGroup:     GDScript = preload("property_handlers/group_handler.gd")
+	const PropertyHandlerMultiline: GDScript = preload("property_handlers/multiline_handler.gd")
+	const PropertyHandlerNumber:    GDScript = preload("property_handlers/number_handler.gd")
+	const PropertyHandlerString:    GDScript = preload("property_handlers/string_handler.gd")
+	const PropertyHandlerVector2:   GDScript = preload("property_handlers/vector2_handler.gd")
+	const PropertyHandlerVector3:   GDScript = preload("property_handlers/vector3_handler.gd")
+
+	PropertyHandler.declare_property(TYPE_NIL,         PropertyHandlerCategory.can_handle,              PropertyHandlerCategory.create)
+	PropertyHandler.declare_property(TYPE_NIL,         PropertyHandlerGroup.can_handle_group,           PropertyHandlerGroup.create_group)
+	PropertyHandler.declare_property(TYPE_NIL,         PropertyHandlerGroup.can_handle_subgroup,        PropertyHandlerGroup.create_subgroup)
+	PropertyHandler.declare_property(TYPE_NIL,         PropertyHandlerButton.can_handle,                PropertyHandlerButton.create)
+	PropertyHandler.declare_property(TYPE_BOOL,        PropertyHandlerBool.can_handle,                  PropertyHandlerBool.create)
+	PropertyHandler.declare_property(TYPE_INT,         PropertyHandlerNumber.can_handle_int,            PropertyHandlerNumber.create_int)
+	PropertyHandler.declare_property(TYPE_INT,         PropertyHandlerEnum.can_handle,                  PropertyHandlerEnum.create)
+	PropertyHandler.declare_property(TYPE_INT,         PropertyHandlerFlags.can_handle,                 PropertyHandlerFlags.create)
+	PropertyHandler.declare_property(TYPE_FLOAT,       PropertyHandlerNumber.can_handle_float,          PropertyHandlerNumber.create_float)
+	PropertyHandler.declare_property(TYPE_STRING,      PropertyHandlerString.can_handle_string,         PropertyHandlerString.create_string)
+	PropertyHandler.declare_property(TYPE_STRING,      PropertyHandlerMultiline.can_handle_string,      PropertyHandlerMultiline.create_string)
+	PropertyHandler.declare_property(TYPE_VECTOR2,     PropertyHandlerVector2.can_handle_vector2,       PropertyHandlerVector2.create_vector2)
+	PropertyHandler.declare_property(TYPE_VECTOR2I,    PropertyHandlerVector2.can_handle_vector2i,      PropertyHandlerVector2.create_vector2i)
+	PropertyHandler.declare_property(TYPE_VECTOR3,     PropertyHandlerVector3.can_handle_vector3,       PropertyHandlerVector3.create_vector3)
+	PropertyHandler.declare_property(TYPE_VECTOR3I,    PropertyHandlerVector3.can_handle_vector3i,      PropertyHandlerVector3.create_vector3i)
+	PropertyHandler.declare_property(TYPE_COLOR,       PropertyHandlerColor.can_handle,                 PropertyHandlerColor.create)
+	PropertyHandler.declare_property(TYPE_STRING_NAME, PropertyHandlerString.can_handle_string_name,    PropertyHandlerString.create_string_name)
+	PropertyHandler.declare_property(TYPE_STRING_NAME, PropertyHandlerMultiline.can_handle_string_name, PropertyHandlerMultiline.create_string_name)
 
 ## Declares a supported type for properties. Declaration example:
 ## [codeblock]
@@ -35,20 +71,33 @@ static var _declarations: Array[Dictionary] = []
 ##
 ##    return spin_box
 ## [/codeblock]
-static func declare_property(validator: Callable, constructor: Callable) -> void:
+static func declare_property(
+		type: Variant.Type,
+		validator: Callable,
+		constructor: Callable,
+	) -> void:
+
 	assert(validator.is_valid(), "Invalid validator Callable.")
 	assert(constructor.is_valid(), "Invalid constructor Callable.")
 
-	if validator.is_valid() and constructor.is_valid():
-		var declaration: Dictionary[StringName, Callable] = {
-			&"validator": validator,
-			&"constructor": constructor,
-		}
-		_declarations.push_front(declaration)
+	var declaration: Dictionary[StringName, Variant] = {
+		&"type": type,
+		&"validator": validator,
+		&"constructor": constructor,
+	}
+	declaration.make_read_only()
+
+	if not _registry.has(type):
+		_registry[type] = Array([], TYPE_DICTIONARY, &"", null)
+
+	_registry[type].push_front(declaration)
 
 ## Returns [param true] that the property can be handled.
 static func can_handle_property(object: Object, property: Dictionary, flags: int = FLAG_NONE) -> bool:
-	for declaration: Dictionary in _declarations:
+	if not _registry.has(property.type):
+		return false
+
+	for declaration: Dictionary in _registry[property.type]:
 		var validator: Callable = declaration.validator
 		if validator.is_valid() and validator.call(object, property, flags):
 			return true
@@ -73,11 +122,10 @@ static func create_property(
 		flags: int = FLAG_NONE,
 	) -> Control:
 
-	assert(is_instance_valid(object), "Invalid Object!")
-	if not is_instance_valid(object):
+	if not _registry.has(property.type):
 		return null
 
-	for declaration: Dictionary in _declarations:
+	for declaration: Dictionary in _registry[property.type]:
 		var validator: Callable = declaration.validator
 		if not validator.is_valid() or not validator.call(object, property, flags):
 			continue
@@ -94,6 +142,16 @@ static func create_property(
 			return control
 
 	return null
+
+## Returns an array of supported types, excluding TYPE_NIL if exclude_nil is true.
+static func get_supported_types(exclude_nil: bool = true) -> PackedByteArray:
+	var supported_type := _registry.keys()
+	if exclude_nil:
+		supported_type.erase(TYPE_NIL)
+
+	return supported_type
+
+
 
 
 static func create_label(text: String) -> Label:
@@ -123,6 +181,7 @@ static func create_button(text: String, on_pressed: Callable) -> Button:
 	var button := Button.new()
 	button.set_text(text)
 	button.set_name("Button")
+	button.set_text_overrun_behavior(TextServer.OVERRUN_TRIM_ELLIPSIS)
 
 	if on_pressed.is_valid():
 		button.pressed.connect(on_pressed)
@@ -133,8 +192,6 @@ static func create_button(text: String, on_pressed: Callable) -> Button:
 
 
 static func configure_property_container(container: Container, title: String, control: Control) -> void:
-	container.set_custom_minimum_size(MINIMUM_SIZE)
-
 	if title:
 		container.add_child(create_label(title))
 
@@ -186,6 +243,7 @@ static func wrap_property_editor(
 		property: Dictionary,
 	) -> Control:
 
+	editor.set_meta(&"vertical", flags & FLAG_VERTICAL)
 	if flags & FLAG_COMPACT:
 		return editor
 
@@ -193,11 +251,11 @@ static func wrap_property_editor(
 	if not (flags & FLAG_NO_LABEL):
 		title = property.name
 
-	var flow_container := create_flow_container(title, editor)
-	flow_container.set_vertical(flags & FLAG_VERTICAL)
+	var container := create_box_container(title, editor)
+	container.set_vertical(flags & FLAG_VERTICAL)
 
 	var description: String = get_property_description(object, property.name)
 	if flags & FLAG_SUB_PROPERTY:
-		return create_sub_property_panel(description, flow_container)
+		return create_sub_property_panel(description, container)
 
-	return create_property_panel(description, flow_container)
+	return create_property_panel(description, container)

@@ -4,21 +4,19 @@
 extends "../property_handler.gd"
 
 
-static func parse_hint_string(hint_string: String) -> Dictionary[String, int]:
-	var option: Dictionary[String, int] = {}
-
-	var split: PackedStringArray = hint_string.split(",", false)
-	for i: int in split.size():
-		option[split[i]] = 1 << i
-
-	return option
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
 
 
-static func create_flags_editor(
+static func create(
+		object: Object,
+		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
-		property: Dictionary,
-	) -> VBoxContainer:
+		flags: int,
+	) -> Control:
+
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var value: int = getter.call()
 	var vbox := VBoxContainer.new()
@@ -50,22 +48,14 @@ static func create_flags_editor(
 
 		vbox.add_child(check_box)
 
-	return vbox
+	return wrap_property_editor(flags, vbox, object, property)
 
 
-static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
-	return property.hint == PROPERTY_HINT_FLAGS and property.type == TYPE_INT
+static func parse_hint_string(hint_string: String) -> Dictionary[String, int]:
+	var option: Dictionary[String, int] = {}
 
+	var split: PackedStringArray = hint_string.split(",", false)
+	for i: int in split.size():
+		option[split[i]] = 1 << i
 
-static func create(
-		object: Object,
-		property: Dictionary,
-		setter: Callable,
-		getter: Callable,
-		flags: int,
-	) -> Control:
-
-	assert(can_handle(object, property, flags), "Can't handle property!")
-
-	var flags_editor := create_flags_editor(setter, getter, property)
-	return wrap_property_editor(flags, flags_editor, object, property)
+	return option

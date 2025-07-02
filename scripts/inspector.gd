@@ -48,9 +48,6 @@ var _subgroup_states: Dictionary[StringName, bool] = {}
 func _init() -> void:
 	self.set_theme_type_variation(&"Inspector")
 
-	# INFO: Required for static initialization.
-	load("res://addons/object-inspector/scripts/inspector_properties.gd")
-
 	_search = LineEdit.new()
 	_search.set_placeholder("Filter Properties")
 	_search.set_editable(false)

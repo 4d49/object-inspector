@@ -4,24 +4,6 @@
 extends "../property_handler.gd"
 
 
-static func create_bool_editor(setter: Callable, getter: Callable, property: Dictionary) -> CheckBox:
-	var check_box := CheckBox.new()
-	check_box.set_text("On")
-	check_box.set_flat(true)
-	check_box.set_pressed_no_signal(getter.call())
-
-	if setter.is_valid():
-		var callback: Callable = func(value: bool) -> void:
-			setter.call(value)
-			check_box.set_pressed_no_signal(getter.call())
-
-		check_box.toggled.connect(callback)
-	else:
-		check_box.set_disabled(true)
-
-	return check_box
-
-
 static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
 	return property.type == TYPE_BOOL
 
@@ -36,5 +18,18 @@ static func create(
 
 	assert(can_handle(object, property, flags), "Can't handle property!")
 
-	var bool_editor := create_bool_editor(setter, getter, property)
-	return wrap_property_editor(flags, bool_editor, object, property)
+	var check_box := CheckBox.new()
+	check_box.set_text("On")
+	check_box.set_flat(true)
+	check_box.set_pressed_no_signal(getter.call())
+
+	if setter.is_valid():
+		var callback: Callable = func(value: bool) -> void:
+			setter.call(value)
+			check_box.set_pressed_no_signal(getter.call())
+
+		check_box.toggled.connect(callback)
+	else:
+		check_box.set_disabled(true)
+
+	return wrap_property_editor(flags, check_box, object, property)

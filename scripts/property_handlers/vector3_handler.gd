@@ -4,23 +4,54 @@
 extends "../property_handler.gd"
 
 
-const DEFAULT_MIN: int = -2147483648
-const DEFAULT_MAX: int =  2147483647
+static func can_handle_vector3(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_VECTOR3
+
+static func can_handle_vector3i(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_VECTOR3I
 
 
-@warning_ignore_start("untyped_declaration", "narrowing_conversion", "confusable_local_declaration")
-static func create_vector3_editor(
+static func create_vector3(
+		object: Object,
+		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_vector3(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+static func create_vector3i(
+		object: Object,
 		property: Dictionary,
-	) -> BoxContainer:
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_vector3i(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+
+static func _create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+
+	const DEFAULT_MIN: int = -2147483648
+	const DEFAULT_MAX: int =  2147483647
 
 	var box := BoxContainer.new()
 	box.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 
 	var value: Vector3 = getter.call()
 
-	var x_spin := SpinBox.new()
+	var x_spin := create_spin_box()
 	x_spin.set_editable(setter.is_valid())
 	x_spin.set_name("X")
 	x_spin.set_prefix("x")
@@ -29,7 +60,6 @@ static func create_vector3_editor(
 	x_spin.set_step(1.0 if property.type == TYPE_VECTOR3I else 0.001)
 	x_spin.set_use_rounded_values(property.type == TYPE_VECTOR3I)
 	x_spin.set_value_no_signal(value.x)
-	x_spin.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	box.add_child(x_spin)
 
 	var y_spin: SpinBox = x_spin.duplicate()
@@ -75,27 +105,4 @@ static func create_vector3_editor(
 	y_spin.value_changed.connect(callback)
 	z_spin.value_changed.connect(callback)
 
-	return box
-
-
-static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
-	const VALID_TYPES: PackedInt32Array = [
-		TYPE_VECTOR3,
-		TYPE_VECTOR3I,
-	]
-
-	return property.type in VALID_TYPES
-
-
-static func create(
-		object: Object,
-		property: Dictionary,
-		setter: Callable,
-		getter: Callable,
-		flags: int,
-	) -> Control:
-
-	assert(can_handle(object, property, flags), "Can't handle property!")
-
-	var vector3_editor := create_vector3_editor(setter, getter, property)
-	return wrap_property_editor(flags, vector3_editor, object, property)
+	return wrap_property_editor(flags | FLAG_VERTICAL, box, object, property)

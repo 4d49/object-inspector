@@ -4,27 +4,19 @@
 extends "../property_handler.gd"
 
 
-static func parse_hint_string(hint_string: String) -> Dictionary[String, int]:
-	var options: Dictionary[String, int] = {}
-
-	var hint_split: PackedStringArray = hint_string.split(",", false)
-	for i: int in hint_split.size():
-		var split := hint_split[i].split(":", false)
-
-		# if key-value pair.
-		if split.size() > 1 and split[1].is_valid_int():
-			options[split[0]] = split[1].to_int()
-		else:
-			options[split[0]] = i
-
-	return options
+static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.hint == PROPERTY_HINT_ENUM and property.type == TYPE_INT
 
 
-static func create_enum_editor(
+static func create(
+		object: Object,
+		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
-		property: Dictionary,
-	) -> OptionButton:
+		flags: int,
+	) -> Control:
+
+	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var option_button := OptionButton.new()
 	option_button.set_clip_text(true)
@@ -44,22 +36,20 @@ static func create_enum_editor(
 	else:
 		option_button.set_disabled(true)
 
-	return option_button
+	return wrap_property_editor(flags, option_button, object, property)
 
 
-static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
-	return property.hint == PROPERTY_HINT_ENUM and property.type == TYPE_INT
+static func parse_hint_string(hint_string: String) -> Dictionary[String, int]:
+	var options: Dictionary[String, int] = {}
 
+	var hint_split: PackedStringArray = hint_string.split(",", false)
+	for i: int in hint_split.size():
+		var split := hint_split[i].split(":", false)
 
-static func create(
-		object: Object,
-		property: Dictionary,
-		setter: Callable,
-		getter: Callable,
-		flags: int,
-	) -> Control:
+		# if key-value pair.
+		if split.size() > 1 and split[1].is_valid_int():
+			options[split[0]] = split[1].to_int()
+		else:
+			options[split[0]] = i
 
-	assert(can_handle(object, property, flags), "Can't handle property!")
-
-	var enum_editor := create_enum_editor(setter, getter, property)
-	return wrap_property_editor(flags, enum_editor, object, property)
+	return options

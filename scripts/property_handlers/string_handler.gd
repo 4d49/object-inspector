@@ -4,12 +4,44 @@
 extends "../property_handler.gd"
 
 
+static func can_handle_string(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_STRING
 
-static func create_text_editor(
+static func can_handle_string_name(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.type == TYPE_STRING_NAME
+
+
+static func create_string(
+		object: Object,
+		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_string(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+static func create_string_name(
+		object: Object,
 		property: Dictionary,
-	) -> LineEdit:
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_string_name(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+
+static func _create(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
 
 	var line_edit := LineEdit.new()
 	line_edit.set_text(getter.call())
@@ -37,27 +69,4 @@ static func create_text_editor(
 	else:
 		line_edit.set_editable(false)
 
-	return line_edit
-
-
-static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
-	const VALID_TYPES: PackedInt32Array = [
-		TYPE_STRING,
-		TYPE_STRING_NAME,
-	]
-
-	return property.type in VALID_TYPES
-
-
-static func create(
-		object: Object,
-		property: Dictionary,
-		setter: Callable,
-		getter: Callable,
-		flags: int,
-	) -> Control:
-
-	assert(can_handle(object, property, flags), "Can't handle property!")
-
-	var text_editor := create_text_editor(setter, getter, property)
-	return wrap_property_editor(flags, text_editor, object, property)
+	return wrap_property_editor(flags, line_edit, object, property)

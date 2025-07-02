@@ -4,6 +4,36 @@
 extends "../property_handler.gd"
 
 
+static func can_handle_string(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.hint == PROPERTY_HINT_MULTILINE_TEXT and property.type == TYPE_STRING
+
+static func can_handle_string_name(object: Object, property: Dictionary, flags: int) -> bool:
+	return property.hint == PROPERTY_HINT_MULTILINE_TEXT and property.type == TYPE_STRING_NAME
+
+
+static func create_string(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_string(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+static func create_string_name(
+		object: Object,
+		property: Dictionary,
+		setter: Callable,
+		getter: Callable,
+		flags: int,
+	) -> Control:
+
+	assert(can_handle_string_name(object, property, flags), "Can't handle property!")
+	return _create(object, property, setter, getter, flags)
+
+
 static func create_window(setter: Callable, getter: Callable) -> AcceptDialog:
 	var window := AcceptDialog.new()
 	window.set_name("EditWindow")
@@ -29,24 +59,13 @@ static func create_window(setter: Callable, getter: Callable) -> AcceptDialog:
 	return window
 
 
-static func can_handle(object: Object, property: Dictionary, flags: int) -> bool:
-	const VALID_TYPES: PackedInt32Array = [
-		TYPE_STRING,
-		TYPE_STRING_NAME,
-	]
-
-	return property.hint == PROPERTY_HINT_MULTILINE_TEXT and property.type in VALID_TYPES
-
-
-static func create(
+static func _create(
 		object: Object,
 		property: Dictionary,
 		setter: Callable,
 		getter: Callable,
 		flags: int,
 	) -> Control:
-
-	assert(can_handle(object, property, flags), "Can't handle property!")
 
 	var container := VBoxContainer.new()
 	container.set_name("Container")
@@ -71,6 +90,11 @@ static func create(
 	hbox.add_child(text_edit)
 
 	if setter.is_valid():
+		if property.type == TYPE_STRING_NAME:
+			var string_name_setter: Callable = func(text: StringName) -> void:
+				setter.call(text)
+			setter = string_name_setter
+
 		var callback: Callable = func() -> void:
 			var column: int = text_edit.get_caret_column()
 			var line: int = text_edit.get_caret_line()
