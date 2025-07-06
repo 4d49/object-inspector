@@ -6,6 +6,9 @@
 class_name Inspector
 extends VBoxContainer
 
+
+const PropertyHandler: GDScript = preload("property_handler.gd")
+
 ## Emitted when object changed.
 signal object_changed(object: Object)
 
@@ -44,9 +47,6 @@ var _subgroup_states: Dictionary[StringName, bool] = {}
 
 func _init() -> void:
 	self.set_theme_type_variation(&"Inspector")
-
-	# INFO: Required for static initialization.
-	load("res://addons/object-inspector/scripts/inspector_properties.gd")
 
 	_search = LineEdit.new()
 	_search.set_placeholder("Filter Properties")
@@ -214,7 +214,7 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Subgroup property does not have `property_container` meta!")
 
 			subgroup = control
-			subgroup.call(&"set_toggled", _subgroup_states.get(property.name, false))
+			subgroup.emit_signal(&"toggled", _subgroup_states.get(property.name, false))
 			subgroup.set_meta(&"group", group)
 
 			var error: Error = subgroup.connect(&"toggled", _on_subgroup_toggled.bind(property.name))
@@ -232,7 +232,7 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Group property does not have `property_container` meta!")
 
 			group = control
-			group.call(&"set_toggled", _group_states.get(property.name, false))
+			group.emit_signal(&"toggled", _group_states.get(property.name, false))
 			group.set_meta(&"category", category)
 
 			var error: Error = group.connect(&"toggled", _on_group_toggled.bind(property.name))
