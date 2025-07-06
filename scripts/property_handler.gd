@@ -13,9 +13,6 @@ enum {
 }
 
 
-const MINIMUM_SIZE: Vector2 = Vector2(128.0, 24.0)
-
-
 static var _registry: Dictionary[Variant.Type, Array] = {}
 
 # Registers default property handlers for Inspector types.
@@ -166,7 +163,6 @@ static func create_label(text: String) -> Label:
 	label.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 	label.set_v_size_flags(Control.SIZE_EXPAND_FILL)
 	label.set_stretch_ratio(0.75)
-	label.set_custom_minimum_size(MINIMUM_SIZE)
 
 	return label
 
@@ -201,7 +197,6 @@ static func configure_property_container(container: Container, title: String, co
 		control.set_name("Property")
 		control.set_h_size_flags(Control.SIZE_EXPAND_FILL)
 		control.set_v_size_flags(Control.SIZE_EXPAND_FILL)
-		control.set_custom_minimum_size(MINIMUM_SIZE)
 		container.add_child(control)
 
 static func create_box_container(title: String, control: Control) -> BoxContainer:
