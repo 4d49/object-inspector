@@ -3,11 +3,13 @@
 
 
 enum {
-	FLAG_NONE         = 0,
-	FLAG_COMPACT      = 1 << 0,
-	FLAG_VERTICAL     = 1 << 1,
-	FLAG_SUB_PROPERTY = 1 << 2,
-	FLAG_NO_LABEL     = 1 << 3,
+	FLAG_NONE            = 0,
+	FLAG_COMPACT         = 1 << 0,
+	FLAG_VERTICAL        = 1 << 1,
+	FLAG_SUB_PROPERTY    = 1 << 2,
+	FLAG_NESTED_PROPERTY = 1 << 3,
+	FLAG_NO_LABEL        = 1 << 4,
+	FLAG_NO_PANEL        = 1 << 5,
 }
 
 
@@ -235,6 +237,13 @@ static func create_sub_property_panel(description: String, control: Control) -> 
 
 	return property_panel
 
+static func create_nested_property_panel(description: String, control: Control) -> PanelContainer:
+	var property_panel := create_sub_property_panel(description, control)
+	property_panel.set_name("NestedPropertyPanel")
+	property_panel.set_theme_type_variation(&"NestedPropertyPanel")
+
+	return property_panel
+
 
 static func wrap_property_editor(
 		flags: int,
@@ -243,7 +252,7 @@ static func wrap_property_editor(
 		property: Dictionary,
 	) -> Control:
 
-	editor.set_meta(&"vertical", flags & FLAG_VERTICAL)
+	editor.set_meta(&"vertical", bool(flags & FLAG_VERTICAL))
 	if flags & FLAG_COMPACT:
 		return editor
 
@@ -254,11 +263,22 @@ static func wrap_property_editor(
 	var container := create_box_container(title, editor)
 	container.set_vertical(flags & FLAG_VERTICAL)
 
+	if flags & FLAG_NO_PANEL:
+		return container
+
+	var panel: PanelContainer = null
 	var description: String = get_property_description(object, property.name)
 	if flags & FLAG_SUB_PROPERTY:
-		return create_sub_property_panel(description, container)
+		panel = create_sub_property_panel(description, container)
+	elif flags & FLAG_NESTED_PROPERTY:
+		panel = create_nested_property_panel(description, container)
+	else:
+		panel = create_property_panel(description, container)
+	panel.set_name(property.name)
+	panel.set_meta(&"vertical", bool(flags & FLAG_VERTICAL))
 
-	return create_property_panel(description, container)
+	return panel
+
 ## Returns true if the control has valid [param vertical] metadata that evaluates to true.
 ## Returns false if the control is invalid, lacks the metadata, or metadata is falsy.
 static func has_vertical_meta(control: Control) -> bool:
