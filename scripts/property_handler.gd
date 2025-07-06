@@ -259,3 +259,7 @@ static func wrap_property_editor(
 		return create_sub_property_panel(description, container)
 
 	return create_property_panel(description, container)
+## Returns true if the control has valid [param vertical] metadata that evaluates to true.
+## Returns false if the control is invalid, lacks the metadata, or metadata is falsy.
+static func has_vertical_meta(control: Control) -> bool:
+	return is_instance_valid(control) and control.has_meta(&"vertical") and control.get_meta(&"vertical", false)
