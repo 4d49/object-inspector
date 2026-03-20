@@ -20,13 +20,25 @@ var _search_enabled: bool = true:
 	set = set_search_enabled,
 	get = is_search_enabled
 
+@export 
+var _groups_opened := false
+@export 
+var _subgroups_opened := false
+
+
 @export_flags(
 	"Export only:%d"          % PROPERTY_USAGE_EDITOR,
 	"Category enabled:%d"     % PROPERTY_USAGE_CATEGORY,
 	"Group enabled:%d"        % PROPERTY_USAGE_GROUP,
 	"Subgroup enabled:%d"     % PROPERTY_USAGE_SUBGROUP,
 	"Script variable only:%d" % PROPERTY_USAGE_SCRIPT_VARIABLE,
-) var usage_flags: int = PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_SCRIPT_VARIABLE:
+	"Also show internal:%d"   % PROPERTY_USAGE_INTERNAL,
+) var usage_flags: int = (  PROPERTY_USAGE_EDITOR 
+						  | PROPERTY_USAGE_CATEGORY 
+						  | PROPERTY_USAGE_GROUP 
+						  | PROPERTY_USAGE_SUBGROUP 
+						  | PROPERTY_USAGE_SCRIPT_VARIABLE
+						  | PROPERTY_USAGE_INTERNAL): 
 	set = set_usage_flags
 
 
@@ -214,7 +226,7 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Subgroup property does not have `property_container` meta!")
 
 			subgroup = control
-			subgroup.call(&"set_toggled", _subgroup_states.get(property.name, false))
+			subgroup.call(&"set_toggled", _subgroup_states.get(property.name, _subgroups_opened))
 			subgroup.set_meta(&"group", group)
 
 			var error: Error = subgroup.connect(&"toggled", _on_subgroup_toggled.bind(property.name))
@@ -232,7 +244,7 @@ func update_inspector() -> void:
 			assert(is_instance_valid(parent), "Group property does not have `property_container` meta!")
 
 			group = control
-			group.call(&"set_toggled", _group_states.get(property.name, false))
+			group.call(&"set_toggled", _group_states.get(property.name, _groups_opened))
 			group.set_meta(&"category", category)
 
 			var error: Error = group.connect(&"toggled", _on_group_toggled.bind(property.name))
@@ -255,14 +267,21 @@ func update_inspector() -> void:
 
 		property.control = control
 
+func is_cat_or_group_to_keep(usage: int) -> bool:
+	var gr_usage = usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP)
+	return (gr_usage & usage_flags) == gr_usage
 
 func is_valid_usage_flag(usage: int) -> bool:
 	# Check if usage includes GROUP, CATEGORY, or SUBGROUP
 	if usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP):
-		return (usage & usage_flags) == usage
+		return true # do not filter on usage flags here or empty section detection breaks
 
 	# Ensure usage matches EDITOR flag
 	if usage_flags & PROPERTY_USAGE_EDITOR and not (usage & PROPERTY_USAGE_EDITOR):
+		return false
+	
+	# ignore internal marked properties if not enabled to include them
+	if (usage & PROPERTY_USAGE_INTERNAL) and not (usage_flags & PROPERTY_USAGE_INTERNAL):
 		return false
 
 	# Ensure usage matches SCRIPT_VARIABLE flag
@@ -311,10 +330,13 @@ func _update_property_list() -> void:
 			continue
 		elif prop.usage & PROPERTY_USAGE_SUBGROUP:
 			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_SUBGROUP)
+			prop.to_keep = prop.to_keep and is_cat_or_group_to_keep(prop.usage)
 		elif prop.usage & PROPERTY_USAGE_GROUP:
 			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY)
+			prop.to_keep = prop.to_keep and is_cat_or_group_to_keep(prop.usage)
 		elif prop.usage & PROPERTY_USAGE_CATEGORY:
 			prop.to_keep = not _is_section_empty(properties, i, PROPERTY_USAGE_CATEGORY)
+			prop.to_keep = prop.to_keep and is_cat_or_group_to_keep(prop.usage)
 
 	_valid_properties = properties.filter(func(prop: Dictionary) -> bool:
 		return prop.erase(&"to_keep") if prop.to_keep else false

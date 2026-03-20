@@ -34,7 +34,13 @@ class ExampleObject extends RefCounted:
 
 	@export_category(\"Simple Types\")
 
-	@export_group(\"Boolean\")
+	@export_group(\"internal marked elements\")
+	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL) 
+	var internal_boolean: bool = randi() % 2
+	@export_custom(PROPERTY_HINT_NONE, \"\", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL) 
+	var internal_integer: int = randi()
+	
+	@export_group(\"Boolean\") 
 	@export var boolean: bool = randi() % 2
 	@export_custom(PROPERTY_HINT_NONE, \"\", READ_ONLY)
 	var boolean_readonly: bool = randi() % 2
