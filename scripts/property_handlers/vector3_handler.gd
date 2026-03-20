@@ -70,9 +70,9 @@ static func _create_vector3_control(setter: Callable, getter: Callable, is_vecto
 			setter.call(Vector3(x_spin.get_value(), y_spin.get_value(), z_spin.get_value()))
 			var vector3: Vector3 = getter.call()
 
-			x_spin.set_value_no_signal(value.x)
-			y_spin.set_value_no_signal(value.y)
-			z_spin.set_value_no_signal(value.z)
+			x_spin.set_value_no_signal(vector3.x)
+			y_spin.set_value_no_signal(vector3.y)
+			z_spin.set_value_no_signal(vector3.z)
 
 	x_spin.value_changed.connect(on_value_changed)
 	y_spin.value_changed.connect(on_value_changed)
